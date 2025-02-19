@@ -12,73 +12,138 @@ class Economy(commands.Cog):
     def setup_economy(self):
         """Create the economy-related database tables if they don’t exist."""
         self.c.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            balance INTEGER DEFAULT 500,
-            district TEXT
-        )
-        """)
-        self.c.execute("""
-        CREATE TABLE IF NOT EXISTS companies (
-            company_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            owner_id INTEGER,
-            name TEXT,
-            equity INTEGER DEFAULT 0,
-            shares INTEGER DEFAULT 100,
-            FOREIGN KEY (owner_id) REFERENCES users(user_id)
-        )
-        """)
+        CREATE TABLE IF NOT EXISTS tax_rate (
+            trade_rate REAL DEFAULT 0.05,
+            corporate_rate REAL DEFAULT 0.1,
+            government_balance INTEGER DEFAULT 0
+    )
+    """)
         self.conn.commit()
+        self.c.execute("SELECT COUNT(*) FROM tax_rate")
+        row_count = self.c.fetchone()[0]
+
+        if row_count == 0:
+            print("🔹 No tax rate found, inserting default values.")
+            self.c.execute("INSERT INTO tax_rate (trade_rate, corporate_rate,government_balance) VALUES (0.05, 0.1, 0)")
+            self.conn.commit()
 
     @commands.command()
-    async def balance(self, ctx):
-        """Check user balance."""
-        user_id = ctx.author.id
+    async def balance(self, ctx, member: discord.Member = None):
+        """Check your balance or another user's balance."""
+        user = member if member else ctx.author  # Default to the command sender if no user is mentioned
+        user_id = user.id
+
+        # Fetch balance
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
 
         if row:
-            await ctx.send(f"{ctx.author.mention}, your balance is ${row[0]}")
+            await ctx.send(f"{user}'s balance is **${row[0]}**.")
         else:
-            self.c.execute("INSERT INTO users (user_id) VALUES (?)", (user_id,))
-            self.conn.commit()
-            await ctx.send(f"{ctx.author.mention}, your balance is $500")
-
-    @commands.command()
-    async def create_company(self, ctx, name: str):
-        """Create a company with initial capital."""
-        user_id = ctx.author.id
-        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
-        balance = self.c.fetchone()
-
-        if not balance or balance[0] < 2000:
-            await ctx.send("You need at least $2000 to start a company.")
-            return
-
-        self.c.execute("INSERT INTO companies (owner_id, name, equity) VALUES (?, ?, ?)", (user_id, name, 2000))
-        self.c.execute("UPDATE users SET balance = balance - 2000 WHERE user_id = ?", (user_id,))
-        self.conn.commit()
-
-        await ctx.send(f"Company `{name}` created with $2000 in equity!")
+            # Auto-register user if they don't exist
+            await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
     @commands.command()
     async def send_money(self, ctx, recipient: discord.Member, amount: int):
-        """Send money to another user."""
+        """Send money between users, companies, or both, while applying tax to government balance."""
         sender_id = ctx.author.id
-        recipient_id = recipient.id
+        recipient_id = recipient.id  # Extract recipient ID for SQL compatibility
 
-        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
-        sender_balance = self.c.fetchone()
+        print(f"🔍 Transaction started by {sender_id} - Sending ${amount} to {recipient.mention}")
 
-        if not sender_balance or sender_balance[0] < amount:
-            await ctx.send("Insufficient funds.")
+        # Ensure amount is positive
+        if amount <= 0:
+            print("❌ Error: Transaction amount must be greater than zero.")
+            await ctx.send("⚠️ Transaction amount must be greater than zero.")
             return
 
-        self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (amount, sender_id))
-        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient_id))
-        self.conn.commit()
+        # Fetch tax rate and government balance
+        try:
+            print("📊 Fetching tax rate...")
+            self.c.execute("SELECT trade_rate, corporate_rate, government_balance FROM tax_rate")
+            tax_row = self.c.fetchone()
+            if not tax_row:
+                await ctx.send("⚠️ Tax rate information is missing. Please set a tax rate first.")
+                return
+            trade_rate, corporate_rate, government_balance = tax_row
+            print(f"📊 Trade Rate: {trade_rate}, Corporate Rate: {corporate_rate}, Gov Balance: {government_balance}")
+        except sqlite3.Error as e:
+            print(f"❌ Database error while fetching tax rate: {e}")
+            await ctx.send("⚠️ A database error occurred while processing the transaction.")
+            return
 
-        await ctx.send(f"Transferred ${amount} to {recipient.mention}.")
+        # Determine sender type (Person or Company)
+        try:
+            print("🔍 Checking if sender is a person...")
+            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
+            sender_balance = self.c.fetchone()
+            print(f"👤 Sender balance: {sender_balance}")
+
+            print("🏢 Checking if recipient is a company...")
+            self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient.name,))
+            company_recipient_balance = self.c.fetchone()
+            print(f"🏢 Company recipient balance: {company_recipient_balance}")
+        except sqlite3.Error as e:
+            print(f"❌ Database error while checking sender/recipient: {e}")
+            await ctx.send("⚠️ A database error occurred while identifying sender/recipient.")
+            return
+
+        is_sender_company = sender_balance is None  # If no user balance, sender must be a company
+        is_recipient_company = company_recipient_balance is not None  # If company exists, recipient is a company
+
+        print(f"🔹 Sender is a {'company' if is_sender_company else 'person'}, Recipient is a {'company' if is_recipient_company else 'person'}")
+
+        try:
+            if is_sender_company:
+                # Sender is a company
+                self.c.execute("SELECT balance FROM companies WHERE owner_id = ?", (sender_id,))
+                sender_balance = self.c.fetchone()
+
+                tax = int(amount * corporate_rate)
+                total_amount = amount + tax
+
+                if not sender_balance or sender_balance[0] < total_amount:
+                    await ctx.send("⚠️ Company has insufficient funds.")
+                    return
+
+                self.c.execute("UPDATE companies SET balance = balance - ? WHERE owner_id = ?", (total_amount, sender_id))
+            
+            else:
+                # Sender is a person
+                tax = int(amount * trade_rate)
+                total_amount = amount + tax  # Tax calculation moved here to prevent undefined variable error
+
+                if not sender_balance or sender_balance[0] < total_amount:
+                    await ctx.send("⚠️ You have insufficient funds.")
+                    return
+
+                self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (total_amount, sender_id))
+
+            # Process recipient deposit
+            if is_recipient_company:
+                # Recipient is a company
+                self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient.name))
+                recipient_name = recipient.name  # Keep company name for messages
+            else:
+                # Recipient is a person
+                self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient_id))
+
+                recipient_name = recipient.mention
+
+            # Add tax to government balance
+            new_government_balance = government_balance + tax
+            self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
+
+            # Commit the transaction
+            self.conn.commit()
+            print(f"✅ Transaction Success: ${amount} transferred to {recipient_name}, Tax ${tax} collected.")
+
+            await ctx.send(f"💸 Transaction complete! Transferred **${amount}** (+ **${tax} tax**) to **{recipient_name}**.\n"
+                        f"🏛 **Government Balance Updated:** +${tax}. New total: **${new_government_balance}**")
+
+        except sqlite3.Error as e:
+            print(f"❌ Database transaction error: {e}")
+            await ctx.send("⚠️ A database error occurred while processing the transaction.")
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))

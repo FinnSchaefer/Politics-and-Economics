@@ -18,6 +18,7 @@ intents.messages = True
 intents.guilds = True
 intents.members = True  # Required for member tracking
 intents.message_content = True  # Ensures bot can read messages
+# Ensure database setup for users
 
 class MyBot(commands.Bot):
     async def setup_hook(self):
@@ -25,6 +26,7 @@ class MyBot(commands.Bot):
         try:
             await self.load_extension("economy")
             await self.load_extension("politics")
+            await self.load_extension("companies")
             print("Cogs loaded successfully.")
         except Exception as e:
             print(f"Error loading cogs: {e}")
@@ -35,6 +37,19 @@ bot.remove_command("help")  # Remove default help command
 conn = sqlite3.connect("game.db")
 c = conn.cursor()
 
+def setup_database():
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY,
+        balance INTEGER DEFAULT 0,
+        district TEXT,
+        senator INTEGER DEFAULT 0,
+        chancellor INTEGER DEFAULT 0
+    )
+    """)
+    conn.commit()
+
+setup_database()
 # Initialize APScheduler
 scheduler = AsyncIOScheduler()
 
@@ -62,6 +77,7 @@ async def help(ctx):
             "`list_bills` → View all proposed bills.\n"
             "`list_laws` → See all passed laws.\n"
             "`start_election` → Admin-only: Start elections.\n"
+            "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
         ),
         inline=False
     )
@@ -71,9 +87,23 @@ async def help(ctx):
         name="💰 **Economy Commands**",
         value=(
             "`balance` → Check your balance.\n"
-            "`send_money [Amount] [User]` → Transfer money.\n"
+            "`send_money [User] [Amount]` → Transfer money.\n"
+            "`stock_price [Company]` → Check a stock’s value.\n"
+            "`make_public [Company]` → List a company on the stock exchange.\n"
+        ),
+        inline=False
+    )
+
+    # 🏢 Company Commands
+    embed.add_field(
+        name="🏢 **Company Commands**",
+        value=(
+            "`listed_companies` → View all registered companies.\n"
             "`create_company [Name]` → Start a company.\n"
-            "`stock_price [Company]` → Check a stocks value.\n"
+            "`send_company_money [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
+            "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
+            "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
+            "`appoint_board_member [Company] @User` → Assign a board member.\n"
         ),
         inline=False
     )
@@ -134,30 +164,6 @@ async def ping(ctx):
     """Basic ping command to check if the bot is working."""
     await ctx.send("Pong!")
 
-# Ensure database setup for users
-def setup_database():
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
-        balance INTEGER DEFAULT 500,
-        district TEXT,
-        senator INTEGER DEFAULT 0,
-        chancellor INTEGER DEFAULT 0
-    )
-    """)
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS companies (
-        company_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        owner_id INTEGER,
-        name TEXT,
-        equity INTEGER DEFAULT 0,
-        shares INTEGER DEFAULT 100,
-        FOREIGN KEY (owner_id) REFERENCES users(user_id)
-    )
-    """)
-    conn.commit()
-
-setup_database()
 
 # Start the bot
 def main():

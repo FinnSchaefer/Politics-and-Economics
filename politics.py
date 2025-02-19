@@ -45,21 +45,24 @@ class Politics(commands.Cog):
 
     @commands.command()
     async def join_district(self, ctx, district: str):
-        """Allows users to join a district."""
+        """Allows users to join a district and ensures they have a user profile in the database."""
         user_id = ctx.author.id
 
-        if district not in OFFICIAL_DISTRICTS:
+        if district not in OFFICIAL_DISTRICTS or district == None:
             await ctx.send(f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.")
             return
 
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
+        
         if row:
             await ctx.send(f"{ctx.author.mention}, you are already in a district ({row[0]}). You cannot switch districts.")
             return
 
-        self.c.execute("INSERT INTO users (user_id, district) VALUES (?, ?)", (user_id, district))
+        # Ensure user is added to the database with a default balance
+        self.c.execute("INSERT INTO users (user_id, balance, district) VALUES (?, ?, ?)", (user_id, 500, district))
         self.conn.commit()
+        print(f"✅ New user {user_id} added to the database with $500 balance.")
 
         role = discord.utils.get(ctx.guild.roles, name=district)
         if role:
@@ -67,11 +70,16 @@ class Politics(commands.Cog):
         
         await ctx.send(f"{ctx.author.mention} has joined the district of **{district}**!")
 
+
     @commands.command()
     async def propose_bill(self, ctx, bill_name: str, description: str, link: str):
         """Allows senators to propose a bill from Monday to Friday."""
         proposer_id = ctx.author.id
         print(f"Proposer ID: {proposer_id}")
+
+        if ctx.channel.id != 1341231842166050978:
+            await ctx.send("⚠️ Bill proposals can only take place in #senate-chambers.")
+            return
 
         try:
             self.conn.commit()  # Force save any uncommitted transactions
@@ -310,7 +318,19 @@ class Politics(commands.Cog):
         else:
             await ctx.send("Member not found in the guild.")
 
-            
+    @commands.command()
+    @commands.has_role("Chancellor")
+    async def set_tax(self, ctx, corporate_rate: float, trade_rate: float):
+        """Sets the corporate and trade tax rates in the database. Only the Chancellor can use this command."""
+        if corporate_rate < 0 or trade_rate < 0:
+            await ctx.send("⚠️ Tax rates must be non-negative values.")
+            return
+        
+        self.c.execute("UPDATE tax_rate SET corporate_rate = ?, trade_rate = ?", (corporate_rate, trade_rate))
+        self.conn.commit()
+        
+        await ctx.send(f"✅ Tax rates updated!\n🏢 Corporate Tax: **{corporate_rate * 100}%**\n💼 Trade Tax: **{trade_rate * 100}%**")
+
     @tasks.loop(hours=24)
     async def vote_bills(self):
         """Automatically announces voting every Sunday for all proposed bills of the current week."""
