@@ -144,20 +144,6 @@ async def on_ready():
         scheduler.add_job(distribute_ubi, "interval", days=1)
         scheduler.start()
 
-@bot.event
-async def on_message(message):
-    """Ensure the bot processes commands correctly."""
-    print(f"Message received: {message.content} from {message.author}")
-
-    if message.author == bot.user:
-        return  # Ignore bot's own messages
-
-    ctx = await bot.get_context(message)
-    if ctx.command:
-        print(f"Command detected: {ctx.command.name}")
-
-    await bot.process_commands(message)  # Ensure command processing
-
 # Test Ping Command
 @bot.command()
 async def ping(ctx):

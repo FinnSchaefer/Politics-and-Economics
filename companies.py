@@ -4,7 +4,6 @@ import json
 from discord.ext import commands
 import matplotlib.pyplot as plt
 import io
-import discord
 
 class Companies(commands.Cog):
     def __init__(self, bot):
