@@ -37,6 +37,24 @@ class Companies(commands.Cog):
         """)
         self.conn.commit()
 
+
+    @commands.command()
+    async def create_company(self, ctx, company_name: str):
+        """Creates a new company for the user."""
+        owner_id = ctx.author.id
+        
+        self.c.execute("SELECT name FROM companies WHERE owner_id = ?", (owner_id,))
+        existing_company = self.c.fetchone()
+        
+        if existing_company:
+            await ctx.send("⚠️ You already own a company.")
+            return
+        
+        self.c.execute("INSERT INTO companies (owner_id, name) VALUES (?, ?)", (owner_id, company_name))
+        self.conn.commit()
+        
+        await ctx.send(f"🏢 **{company_name}** has been created successfully!")
+
     @commands.command()
     async def listed_companies(self, ctx):
         """Lists all registered companies."""
