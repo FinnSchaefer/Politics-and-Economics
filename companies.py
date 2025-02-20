@@ -43,6 +43,13 @@ class Companies(commands.Cog):
         """Creates a new company for the user."""
         owner_id = ctx.author.id
         
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (owner_id,))
+        user_balance = self.c.fetchone()
+        
+        if not user_balance or user_balance[0] < 1000:
+            await ctx.send("⚠️ You need at least $1000 to create a company.")
+            return
+        
         self.c.execute("SELECT name FROM companies WHERE owner_id = ?", (owner_id,))
         existing_company = self.c.fetchone()
         
@@ -50,10 +57,11 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ You already own a company.")
             return
         
-        self.c.execute("INSERT INTO companies (owner_id, name) VALUES (?, ?)", (owner_id, company_name))
+        self.c.execute("INSERT INTO companies (owner_id, name, balance) VALUES (?, ?, ?)", (owner_id, company_name, 1000))
+        self.c.execute("UPDATE users SET balance = balance - 1000 WHERE user_id = ?", (owner_id,))
         self.conn.commit()
         
-        await ctx.send(f"🏢 **{company_name}** has been created successfully!")
+        await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
 
     @commands.command()
     async def listed_companies(self, ctx):
