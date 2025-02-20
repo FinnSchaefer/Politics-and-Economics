@@ -6,9 +6,10 @@ import datetime
 from discord.ext import commands, tasks
 
 OFFICIAL_DISTRICTS = [
-    "Corinthia", "Vordane", "Drakenshire", "Eldoria", "Nyxhaven", "Tarsis",
-    "Veymar", "Ironmere", "Caelmont", "Branholm", "Solmara", "Rexhelm", "Zephyria"
+    "Corinthia", "Vordane", "Drakenshire", "Eldoria", "Caelmont"
 ]
+
+#unused districts for later expansion  "Nyxhaven", "Tarsis", "Veymar", "Ironmere", "Branholm", "Solmara", "Rexhelm", "Zephyria"
 
 class Politics(commands.Cog):
     def __init__(self, bot):
