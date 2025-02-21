@@ -89,6 +89,7 @@ async def help(ctx):
             "`balance` → Check your balance.\n"
             "`government_balance` → Check the government's balance.\n"
             "`send [User] [Amount]` → Transfer money.\n"
+            "`send2c [Company] [Amount]` → Transfer money to a company.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"
         ),

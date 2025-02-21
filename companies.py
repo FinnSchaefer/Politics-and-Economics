@@ -144,7 +144,7 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command()
+    @commands.command(aliases=["send2c","s2c"])
     async def send_to_company(self, ctx, sender: discord.Member, company: str, amount: float):
         """Send money from a user to a company."""
         sender_id = sender.id
