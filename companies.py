@@ -91,7 +91,7 @@ class Companies(commands.Cog):
                     f"💰 Balance: ${comp[1]:,.2f}\n"
                     f"📈 Price per Share: ${price_per_share:.2f}\n"
                     f"📊 Total Shares: {comp[4]}\n"
-                    f"📊 Outstanding Shares: {comp[2]}\n"
+                    f"📊 Floating Shares: {comp[2]}\n"
                     f"📈 Publicly Traded\n"
                     ),
                     inline=False
@@ -102,7 +102,7 @@ class Companies(commands.Cog):
                 value=(
                 f"👤 Owner: {owner_name}\n"
                 f"💰 Balance: ${comp[1]:,.2f}\n"
-                f"📊 Total Shares: {comp[4]}\n"
+                f"📊 Floating Shares: {comp[4]}\n"
                 f"🔒 Privately Owned\n"
                 ),
                 inline=False
