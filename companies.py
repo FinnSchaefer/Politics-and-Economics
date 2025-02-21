@@ -408,6 +408,14 @@ class Companies(commands.Cog):
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user_id, company_name, amount, amount))
         self.conn.commit()
         
+        # Check if the user now owns a majority of shares
+        self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (user_id, company_name))
+        user_shares = self.c.fetchone()[0]
+        
+        if user_shares > total_shares / 2:
+            self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
+            embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
+        
         embed = discord.Embed(title="📈 Shares Purchased", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=False)
         embed.add_field(name="Shares Purchased", value=amount, inline=False)

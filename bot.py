@@ -102,6 +102,7 @@ async def help(ctx):
         value=(
             "`companies` → View all registered companies.\n"
             "`create_company [Name]` → Start a company.\n"
+            "`delete_company [Name]` → Close a company.\n"
             "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
             "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
             "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
