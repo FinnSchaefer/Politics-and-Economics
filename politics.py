@@ -145,7 +145,7 @@ class Politics(commands.Cog):
         await ctx.send(f"✅ **Bill Proposed!**\n📜 **Bill Name:** {bill_name}\n🔢 **Bill Number:** {bill_number}\n📝 **Description:** {description}\n🔗 [Google Doc]({link})")
 
     @commands.command()
-    async def list_bills(self, ctx):
+    async def bills(self, ctx):
         """Displays all currently proposed bills."""
         self.c.execute("SELECT bill_number, bill_name, description, link, proposed_date FROM bills")
         bills = self.c.fetchall()
@@ -162,7 +162,7 @@ class Politics(commands.Cog):
         await ctx.send(f"📢 **Current Proposed Bills:**\n\n{bill_list}")
 
     @commands.command()
-    async def list_laws(self, ctx):
+    async def laws(self, ctx):
         """Displays all passed laws."""
         self.c.execute("SELECT bill_number, bill_name, description, link, proposed_date FROM bills WHERE passed = 1")
         laws = self.c.fetchall()

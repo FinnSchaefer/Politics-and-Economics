@@ -74,8 +74,8 @@ async def help(ctx):
         value=(
             "`join [District]` → Join a district.\n"
             "`propose_bill [Name] [Desc] [Link]` → Senator-only: Propose a law.\n"
-            "`list_bills` → View all proposed bills.\n"
-            "`list_laws` → See all passed laws.\n"
+            "`bills` → View all proposed bills.\n"
+            "`laws` → See all passed laws.\n"
             "`start_election` → Admin-only: Start elections.\n"
             "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
         ),
@@ -86,7 +86,7 @@ async def help(ctx):
     embed.add_field(
         name="💰 **Economy Commands**",
         value=(
-            "`balance` → Check your balance.\n"
+            "`b` → Check your balance.\n"
             "`send [User] [Amount]` → Transfer money.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"
@@ -98,7 +98,7 @@ async def help(ctx):
     embed.add_field(
         name="🏢 **Company Commands**",
         value=(
-            "`list_companies` → View all registered companies.\n"
+            "`companies` → View all registered companies.\n"
             "`create_company [Name]` → Start a company.\n"
             "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
             "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"

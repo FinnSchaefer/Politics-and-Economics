@@ -28,10 +28,10 @@ class Economy(commands.Cog):
             self.conn.commit()
 
     @commands.command()
-    async def balance(self, ctx, member: discord.Member = None):
+    async def b(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
 
-        if member == "gov":
+        if member and member.name.lower() == "gov":
             # Fetch government balance
             self.c.execute("SELECT government_balance FROM tax_rate")
             row = self.c.fetchone()
