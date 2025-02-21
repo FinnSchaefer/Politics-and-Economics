@@ -443,7 +443,7 @@ class Companies(commands.Cog):
         corporate_rate, government_balance = tax_row
         tax = total_cost * corporate_rate
 
-        if (total_cost * (1 + corporate_rate)) > user_balance[0]:
+        if (total_cost + tax) > user_balance[0]:
             await ctx.send("⚠️ You do not have enough funds to pay for the shares and corporate tax.")
             return
         
