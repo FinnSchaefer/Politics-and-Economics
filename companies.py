@@ -383,6 +383,14 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ This company is private and does not sell shares.")
             return
         
+        if(amount <= 0):
+            await ctx.send("⚠️ You must buy a positive amount of shares.")
+            return
+        
+        if(amount > shares_available):
+            await ctx.send("⚠️ There are not enough shares available to buy this amount.")
+            return
+        
         total_cost = 0
         for _ in range(amount):
             price_per_share = balance / shares_available if shares_available > 0 else 0
@@ -401,6 +409,10 @@ class Companies(commands.Cog):
         tax_row = self.c.fetchone()
         corporate_rate, government_balance = tax_row
         tax = total_cost * corporate_rate
+
+        if (total_cost + total_cost * tax) > user_balance[0]:
+            await ctx.send("⚠️ You do not have enough funds to pay for the shares and corporate tax.")
+            return
         
         self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (total_cost + tax, user_id))
         self.c.execute("UPDATE companies SET balance = ?, shares_available = ? WHERE name = ?", (balance, shares_available, company_name))
@@ -439,6 +451,14 @@ class Companies(commands.Cog):
         
         if not is_public:
             await ctx.send("⚠️ This company is private and does not allow share selling.")
+            return
+        
+        if(amount <= 0):
+            await ctx.send("⚠️ You must sell a positive amount of shares.")
+            return
+        
+        if(amount > total_shares):
+            await ctx.send("⚠️ You cannot sell more shares than the total outstanding shares.")
             return
         
         self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (user_id, company_name))
