@@ -507,7 +507,7 @@ class Companies(commands.Cog):
         
         total_earnings = 0
         for _ in range(amount):
-            price_per_share = balance / shares_available if shares_available > 0 else 0
+            price_per_share = balance / total_shares if total_shares > 0 else 0
             total_earnings += price_per_share
             balance -= price_per_share
             shares_available += 1
