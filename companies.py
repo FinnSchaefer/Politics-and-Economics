@@ -138,11 +138,42 @@ class Companies(commands.Cog):
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (sender_id, company_name, shares_available, shares_available))
         self.conn.commit()
         
-        await ctx.send(f"📊 {company_name} is now publicly traded on the stock exchange! All available shares have been assigned to you.")
+        embed = discord.Embed(title="📊 Company Publicly Listed", color=discord.Color.green())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="Message", value=f"{company_name} is now publicly traded on the stock exchange! All available shares have been assigned to {ctx.author.name}.", inline=False)
+        await ctx.send(embed=embed)
+
 
     @commands.command()
-    async def sendc(self, ctx, company: str, recipient: discord.Member, amount: int):
-        """Send money from a company to a user, from a user to a company, or between companies while applying tax to government balance."""
+    async def send_to_company(self, ctx, sender: discord.Member, company: str, amount: float):
+        """Send money from a user to a company."""
+        sender_id = sender.id
+
+        # Check if the sender has enough balance
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
+        sender_balance = self.c.fetchone()
+
+        if not sender_balance or sender_balance[0] < amount:
+            await ctx.send("⚠️ You do not have enough funds to send this amount.")
+            return
+
+        # Update user balance
+        self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (amount, sender_id))
+        
+        # Update company balance
+        self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, company))
+        
+        self.conn.commit()
+        
+        embed = discord.Embed(title="💸 Transfer Successful", color=discord.Color.green())
+        embed.add_field(name="Sender", value=sender.mention, inline=True)
+        embed.add_field(name="Company", value=f"**{company}**", inline=True)
+        embed.add_field(name="Amount", value=f"${amount:,.2f}", inline=True)
+        await ctx.send(embed=embed)
+        
+    @commands.command()
+    async def sendc(self, ctx, company: str, recipient: discord.Member, amount: float):
+        """Send money from a company to a user while applying tax to government balance."""
         sender_id = ctx.author.id
 
         # Check if the sender owns the company
@@ -167,7 +198,11 @@ class Companies(commands.Cog):
         
         self.conn.commit()
         
-        await ctx.send(f"✅ {amount} has been sent from **{company}** to {recipient.mention}.")
+        embed = discord.Embed(title="💸 Transfer Successful", color=discord.Color.green())
+        embed.add_field(name="Company", value=f"**{company}**", inline=True)
+        embed.add_field(name="Recipient", value=recipient.mention, inline=True)
+        embed.add_field(name="Amount", value=f"${amount:,.2f}", inline=True)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["issue","is"])
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
@@ -194,7 +229,11 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE companies SET total_shares = ?, shares_available = shares_available + ? WHERE name = ?", (new_total_shares, new_shares, company_name))
         self.conn.commit()
         
-        await ctx.send(f"📈 {company_name} has diluted shares to **{new_total_shares}** total shares! New stock price is **${price_per_share:.2f}** per share.")
+        embed = discord.Embed(title="📈 Shares Issued", color=discord.Color.blue())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="New Total Shares", value=new_total_shares, inline=False)
+        embed.add_field(name="New Stock Price", value=f"${price_per_share:.2f} per share", inline=False)
+        await ctx.send(embed=embed)
     
     @commands.command()
     async def appoint_board_member(self, ctx, company_name: str, member: discord.Member):
@@ -223,7 +262,10 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE companies SET board_members = ? WHERE name = ?", (json.dumps(board_members), company_name))
         self.conn.commit()
         
-        await ctx.send(f"🏛️ {member.mention} has been appointed as a board member of **{company_name}**!")
+        embed = discord.Embed(title="🏛️ Board Member Appointed", color=discord.Color.blue())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="New Board Member", value=member.mention, inline=False)
+        await ctx.send(embed=embed)
         
 
     @commands.command(aliases=["stock","sp"])
@@ -328,7 +370,12 @@ class Companies(commands.Cog):
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user_id, company_name, amount, amount))
         self.conn.commit()
         
-        await ctx.send(f"✅ You have purchased {amount} shares of **{company_name}** for **${total_cost:.2f}**, paying **${tax:.2f}** in corporate tax.")
+        embed = discord.Embed(title="📈 Shares Purchased", color=discord.Color.green())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="Shares Purchased", value=amount, inline=False)
+        embed.add_field(name="Total Cost", value=f"${total_cost:.2f}", inline=False)
+        embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["sellshares","ss"])
     async def sell_shares(self, ctx, company_name: str, amount: int):
@@ -374,7 +421,12 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         
-        await ctx.send(f"✅ You have sold {amount} shares of **{company_name}** for **${total_earnings:.2f}**, paying **${tax:.2f}** in corporate tax.")
+        embed = discord.Embed(title="📉 Shares Sold", color=discord.Color.red())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="Shares Sold", value=amount, inline=False)
+        embed.add_field(name="Total Earnings", value=f"${total_earnings:.2f}", inline=False)
+        embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
+        await ctx.send(embed=embed)
 
 
 async def setup(bot):

@@ -39,7 +39,7 @@ class Economy(commands.Cog):
         if row:
             embed = discord.Embed(title="Balance Check", color=discord.Color.green())
             embed.add_field(name="User", value=f"{user}", inline=True)
-            embed.add_field(name="Balance", value=f"**${row[0]}** 💰", inline=True)
+            embed.add_field(name="Balance", value=f"**${row[0]:.2f}** 💰", inline=True)
             await ctx.send(embed=embed)
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
@@ -59,7 +59,7 @@ class Economy(commands.Cog):
             await ctx.send("No government balance found.")
 
     @commands.command()
-    async def send(self, ctx, recipient: discord.Member, amount: int):
+    async def send(self, ctx, recipient: discord.Member, amount: float):
         """Send money between users, companies, or both, while applying tax to government balance."""
         sender_id = ctx.author.id
         recipient_id = recipient.id
