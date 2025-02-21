@@ -358,7 +358,7 @@ class Companies(commands.Cog):
             return
         
         # Calculate stock price per share
-        price_per_share = float(balance) / float(shares_available) if shares_available > 0 else 0.0
+        price_per_share = float(balance) / float(total_shares) if total_shares > 0 else 0.0
         
         # Fetch ownership data
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
