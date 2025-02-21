@@ -33,6 +33,7 @@ class Politics(commands.Cog):
             proposed_date TEXT,
             votes TEXT,
             passed INTEGER DEFAULT 0
+            senate_number INTEGER DEFAULT 0
         )
         """)
         self.c.execute("""
@@ -182,7 +183,9 @@ class Politics(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def start_elections(self, ctx):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
-        if self.i != 0:
+        self.c.execute("SELECT COUNT(*) FROM bills WHERE senate_number != 0")
+        senate_session = self.c.fetchone()[0]
+        if senate_session != 0:
             # Step 1: Remove Senator and Chancellor roles from all members
             senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
             chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
@@ -214,14 +217,24 @@ class Politics(commands.Cog):
                 continue
 
             self.c.execute("INSERT INTO elections (district, candidates, votes) VALUES (?, ?, ?)",
-                        (district, json.dumps([]), json.dumps({})))
+                (district, json.dumps([]), json.dumps({})))
             self.conn.commit()
 
-            await ctx.send(f"Election for **{district}** has begun! Use `.vote_senator {district} @user` to vote.")
-            self.i += 1
-
+        embed = discord.Embed(
+            title="Elections have begun!",
+            description="Use `.vote_senator [district] @user` to vote for your district's senator.",
+            color=discord.Color.blue()
+        )
+        for district in OFFICIAL_DISTRICTS:
+            embed.add_field(name=f"{district} Election", value=f"Vote for your senator in {district}.", inline=False)
+        
+        await ctx.send(embed=embed)
         # Step 5: Schedule Chancellor election after 24 hours
-        await ctx.send("<@1341232328684470293> 📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.")
+        embed = discord.Embed(
+            description="📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
         await asyncio.sleep(86400)
         self.start_chancellor_election(ctx)
 
