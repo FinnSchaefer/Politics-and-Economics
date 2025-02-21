@@ -37,9 +37,23 @@ class Economy(commands.Cog):
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
         if row:
-            await ctx.send(f"{user}'s balance is **${row[0]}**.")
+            embed = discord.Embed(title="Balance Check", color=discord.Color.green())
+            embed.add_field(name="User", value=f"{user}", inline=True)
+            embed.add_field(name="Balance", value=f"**${row[0]}** 💰", inline=True)
+            await ctx.send(embed=embed)
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
+
+    @commands.command(aliases=['govbal','gb'])
+    async def government_balance(self, ctx):
+        """Check the government's balance."""
+        self.c.execute("SELECT government_balance, trade_rate, corporate_rate FROM tax_rate")
+        government_balance, trade_rate, corporate_rate = self.c.fetchone()
+        embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.blue())
+        embed.add_field(name="Balance", value=f"**${government_balance}** 💰", inline=False)
+        embed.add_field(name="Trade Rate", value=f"{trade_rate * 100}%", inline=True)
+        embed.add_field(name="Corporate Rate", value=f"{corporate_rate * 100}%", inline=True)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def send(self, ctx, recipient: discord.Member, amount: int):
@@ -89,7 +103,14 @@ class Economy(commands.Cog):
 
         self.conn.commit()
 
-        await ctx.send(f"💸 {ctx.author} sent **${amount}** to {recipient}. After tax, {recipient} received **${net_amount}** and **${tax_amount}** was added to the government balance.")
+        embed = discord.Embed(title="Transaction Complete", color=discord.Color.green())
+        embed.add_field(name="Sender", value=f"{ctx.author}", inline=True)
+        embed.add_field(name="Recipient", value=f"{recipient}", inline=True)
+        embed.add_field(name="Amount Sent", value=f"${amount}", inline=True)
+        embed.add_field(name="Net Amount Received", value=f"${net_amount}", inline=True)
+        embed.add_field(name="Tax Amount", value=f"${tax_amount}", inline=True)
+        embed.add_field(name="Government Balance Added", value=f"${tax_amount}", inline=True)
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))
