@@ -77,29 +77,36 @@ class Companies(commands.Cog):
         embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
         for comp in companies:
+            self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
+            owner_id = self.c.fetchone()[0]
+            owner = self.bot.get_user(owner_id)
+            owner_name = owner.name if owner else f"User {owner_id}"
+            
             if comp[3]:  # If the company is public
                 price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
                 embed.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
+                    f"👤 Owner: {owner_name}"
                     f"💰 Balance: ${comp[1]:,.2f}\n"
                     f"📈 Price per Share: ${price_per_share:.2f}\n"
                     f"📊 Total Shares: {comp[4]}\n"
                     f"📊 Outstanding Shares: {comp[2]}\n"
-                    f"📈 Publicly Traded"
+                    f"📈 Publicly Traded\n"
                     ),
                     inline=False
                 )
             else:  # If the company is private
                 embed.add_field(
-                    name=f"🏢 {comp[0]}",
-                    value=(
-                    f"💰 Balance: ${comp[1]:,.2f}\n"
-                    f"📊 Total Shares: {comp[4]}\n"
-                    f"🔒 Privately Owned"
-                    ),
-                    inline=False
-                )
+                name=f"🏢 {comp[0]}",
+                value=(
+                f"👤 Owner: {owner_name}"
+                f"💰 Balance: ${comp[1]:,.2f}\n"
+                f"📊 Total Shares: {comp[4]}\n"
+                f"🔒 Privately Owned\n"
+                ),
+                inline=False
+            )
                 
         await ctx.send(embed=embed)
     
@@ -367,9 +374,9 @@ class Companies(commands.Cog):
         # Prepare data for pie chart
         labels = []
         sizes = []
-        for owner_id, shares in ownership_data:
-            user = self.bot.get_user(owner_id)
-            labels.append(user.name if user else f"User {owner_id}")
+        for shareholder_id, shares in ownership_data:
+            user = self.bot.get_user(shareholder_id)
+            labels.append(user.name if user else f"User {shareholder_id}")
             sizes.append(shares)
         
         # Add outstanding shares to the pie chart
@@ -398,6 +405,7 @@ class Companies(commands.Cog):
         embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
         embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
         embed.add_field(name="📈 Total Floating Shares", value=f"**{shares_available}**", inline=False)
+        embed.add_field(name="💵 Total Value", value=f"**${balance:.2f}**", inline=False)
         embed.set_image(url="attachment://stock_price.png")
         
         await ctx.send(embed=embed, file=file)
