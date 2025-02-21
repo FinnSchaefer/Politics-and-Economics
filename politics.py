@@ -213,7 +213,6 @@ class Politics(commands.Cog):
             voters = [row[0] for row in self.c.fetchall()]
 
             if not voters:
-                await ctx.send(f"No voters found in {district}, skipping election.")
                 continue
 
             self.c.execute("INSERT INTO elections (district, candidates, votes) VALUES (?, ?, ?)",
