@@ -51,7 +51,7 @@ class Economy(commands.Cog):
         row = self.c.fetchone()
         if row:
             embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.green())
-            embed.add_field(name="Balance", value=f"**${row[0]}** 💰", inline=True)
+            embed.add_field(name="Balance", value=f"**${row[0]:.2f}** 💰", inline=True)
             embed.add_field(name="Trade Rate", value="5%", inline=True)
             embed.add_field(name="Corporate Rate", value="10%", inline=True)
             await ctx.send(embed=embed)
