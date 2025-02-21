@@ -194,7 +194,6 @@ class Politics(commands.Cog):
         if chancellor_role:
             for member in chancellor_role.members:
                 await member.remove_roles(chancellor_role)
-        await ctx.send("All previous Senators and the Chancellor have been removed.")
 
         # Step 2: Reset senator and chancellor status in the database
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0")
