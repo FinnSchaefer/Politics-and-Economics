@@ -47,13 +47,16 @@ class Economy(commands.Cog):
     @commands.command(aliases=['govbal','gb'])
     async def government_balance(self, ctx):
         """Check the government's balance."""
-        self.c.execute("SELECT government_balance, trade_rate, corporate_rate FROM tax_rate")
-        government_balance, trade_rate, corporate_rate = await self.bot.loop.run_in_executor(None, self.c.fetchone)
-        embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.blue())
-        embed.add_field(name="Balance", value=f"**${government_balance}** 💰", inline=False)
-        embed.add_field(name="Trade Rate", value=f"{trade_rate * 100}%", inline=True)
-        embed.add_field(name="Corporate Rate", value=f"{corporate_rate * 100}%", inline=True)
-        await ctx.send(embed=embed)
+        self.c.execute("SELECT government_balance FROM tax_rate")
+        row = self.c.fetchone()
+        if row:
+            embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.green())
+            embed.add_field(name="Balance", value=f"**${row[0]}** 💰", inline=True)
+            embed.add_field(name="Trade Rate", value="5%", inline=True)
+            embed.add_field(name="Corporate Rate", value="10%", inline=True)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No government balance found.")
 
     @commands.command()
     async def send(self, ctx, recipient: discord.Member, amount: int):
