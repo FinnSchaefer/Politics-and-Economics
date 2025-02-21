@@ -30,25 +30,16 @@ class Economy(commands.Cog):
     @commands.command()
     async def b(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
-
-        if member.display_name.lower() == "gov":
-            # Fetch government balance
-            self.c.execute("SELECT government_balance FROM tax_rate")
-            row = self.c.fetchone()
-            if row:
-                await ctx.send(f"🏛 The government's balance is **${row[0]}**.")
-            else:
-                await ctx.send("⚠️ Government balance information is missing.")
+        
+        user = member if member else ctx.author  # Default to the command sender if no user is mentioned
+        user_id = user.id
+        # Fetch user balance
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if row:
+            await ctx.send(f"{user}'s balance is **${row[0]}**.")
         else:
-            user = member if member else ctx.author  # Default to the command sender if no user is mentioned
-            user_id = user.id
-            # Fetch user balance
-            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
-            row = self.c.fetchone()
-            if row:
-                await ctx.send(f"{user}'s balance is **${row[0]}**.")
-            else:
-                await ctx.send(f"{user}! You need to join a district before checking your balance.")
+            await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
     @commands.command()
     async def send(self, ctx, recipient: discord.Member, amount: int):
