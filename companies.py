@@ -128,47 +128,69 @@ class Companies(commands.Cog):
 
     @commands.command()
     async def sendc(self, ctx, company_name: str, recipient: int, amount: int):
-        """Send money from a company to another company or user while applying tax to government balance."""
+        """Send money from a company to a user or from a user to a company while applying tax to government balance."""
         sender_id = ctx.author.id
         
-        # check if sender is owner of company
+        # Check if sender is a company owner
         self.c.execute("SELECT balance FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
-        company_balance = self.c.fetchone()
+        company = self.c.fetchone()
         
-        if not company_balance or company_balance[0] < amount:
-            await ctx.send("⚠️ Company lacks funds to send this amount.")
-            return
-        
-        self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
-        recipient_balance = self.c.fetchone()
-        
-        if recipient_balance:
-            self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
-        else:
-            recipient_user = await self.bot.fetch_user(recipient)
+        if company:
+            # Sender is a company
+            if company[0] < amount:
+                await ctx.send("⚠️ Company lacks funds to send this amount.")
+                return
+            
+            # Determine if recipient is a company or user
+            self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
+            recipient_company = self.c.fetchone()
+            
+            if recipient_company:
+                self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
+            else:
+                self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient,))
+                recipient_user = self.c.fetchone()
+            
             if not recipient_user:
                 await ctx.send("⚠️ Recipient user or company not found.")
                 return
             
-            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient_user.id,))
-            recipient_balance = self.c.fetchone()
+            self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
             
-            if not recipient_balance:
-                await ctx.send("⚠️ Recipient user or company not found.")
+            # Deduct amount from sender company and apply tax
+            self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, company_name))
+        
+        else:
+            # Sender is a user
+            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
+            user_balance = self.c.fetchone()
+            
+            if not user_balance or user_balance[0] < amount:
+                await ctx.send("⚠️ You lack funds to send this amount.")
                 return
             
-            self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient_user.id))
+            # Determine if recipient is a company
+            self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
+            recipient_company = self.c.fetchone()
+            
+            if recipient_company:
+                self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
+            else:
+                await ctx.send("⚠️ Recipient company not found.")
+                return
+            
+            # Deduct amount from sender user and apply tax
+            self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (amount, sender_id))
         
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, company_name))
-        
+        # Apply tax
         self.c.execute("SELECT corporate_rate FROM tax_rate")
         corporate_rate = self.c.fetchone()[0]
         tax = amount * corporate_rate
         
-        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ? WHERE id = 1", (tax,))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         
-        await ctx.send(f"✅ {company_name} has sent ${amount} to {recipient} successfully, paying ${tax} in taxes.")
+        await ctx.send(f"✅ {company_name if company else ctx.author.name} has sent ${amount} to {recipient} successfully, paying ${tax:.2f} in taxes.")
 
     @commands.command()
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
