@@ -464,6 +464,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
         if largest_shareholder and largest_shareholder[0] == user_id:
             self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
+            self.conn.commit()
             embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
             
         await ctx.send(embed=embed)
@@ -532,6 +533,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
         if largest_shareholder and largest_shareholder[0] != user_id:
             self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (largest_shareholder[0], company_name))
+            self.conn.commit()
             new_owner = self.bot.get_user(largest_shareholder[0])
             embed.add_field(name="New Owner", value=new_owner.mention if new_owner else f"User {largest_shareholder[0]}", inline=False)
         
