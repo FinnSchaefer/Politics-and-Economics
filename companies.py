@@ -20,7 +20,8 @@ class Companies(commands.Cog):
             owner_id INTEGER,
             name TEXT UNIQUE,
             balance REAL DEFAULT 0.0,
-            shares INTEGER DEFAULT 100,
+            shares_available INTEGER DEFAULT 100,
+            total_shares INTEGER DEFAULT 100,
             board_members TEXT DEFAULT '[]',
             is_public INTEGER DEFAULT 0
         )
@@ -73,33 +74,34 @@ class Companies(commands.Cog):
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        total_shares = sum(comp[2] for comp in companies)
+        total_shares = sum(comp[4] for comp in companies)
         embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
         for comp in companies:
             if comp[3]:  # If the company is public
-                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                price_per_share = comp[1] / comp[4] if comp[4] > 0 else 0
                 embed.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
-                        f"💰 Balance: ${comp[1]:,.2f}\n"
-                        f"📈 Price per Share: ${price_per_share:.2f}\n"
-                        f"📊 Total Shares: {comp[2]}\n"
-                        f"📊 Outstanding Shares: {comp[2]}\n"
-                        f"📈 Publicly Traded"
+                    f"💰 Balance: ${comp[1]:,.2f}\n"
+                    f"📈 Price per Share: ${price_per_share:.2f}\n"
+                    f"📊 Total Shares: {comp[5]}\n"
+                    f"📊 Outstanding Shares: {comp[4]}\n"
+                    f"📈 Publicly Traded"
                     ),
                     inline=False
                 )
             else:  # If the company is private
                 embed.add_field(
-                name=f"🏢 {comp[0]}",
-                value=(
-                        f"💰 Balance: ${comp[1]:,.2f}\n"
-                        f"🔒 Privately Owned"
+                    name=f"🏢 {comp[0]}",
+                    value=(
+                    f"💰 Balance: ${comp[1]:,.2f}\n"
+                    f"📊 Total Shares: {comp[5]}\n"
+                    f"🔒 Privately Owned"
                     ),
-                inline=False
-            )
-        
+                    inline=False
+                )
+            
         await ctx.send(embed=embed)
     
     @commands.command()
@@ -127,76 +129,33 @@ class Companies(commands.Cog):
         await ctx.send(f"📊 {company_name} is now publicly traded on the stock exchange! All available shares have been assigned to you.")
 
     @commands.command()
-    async def sendc(self, ctx, sender: str, recipient: str, amount: int):
+    async def sendc(self, ctx, company: str, recipient: int, amount: int):
         """Send money from a company to a user, from a user to a company, or between companies while applying tax to government balance."""
         sender_id = ctx.author.id
+
+        # Check if the sender owns the company
+        self.c.execute("SELECT balance FROM companies WHERE name = ? AND owner_id = ?", (company, sender_id))
+        company_data = self.c.fetchone()
+
+        if not company_data:
+            await ctx.send("⚠️ You do not own this company or it does not exist.")
+            return
+
+        company_balance = company_data[0]
+
+        if company_balance < amount:
+            await ctx.send("⚠️ The company does not have enough funds to send this amount.")
+            return
+
+        # Update company balance
+        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, company))
         
-        # Determine if sender is a company or user
-        self.c.execute("SELECT balance FROM companies WHERE name = ? AND owner_id = ?", (sender, sender_id))
-        sender_company = self.c.fetchone()
+        # Update recipient balance
+        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
         
-        if sender_company:
-            # Sender is a company
-            if sender_company[0] < amount:
-                await ctx.send("⚠️ Company lacks funds to send this amount.")
-                return
-            
-            # Determine if recipient is a company or user
-            self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
-            recipient_company = self.c.fetchone()
-            
-            if recipient_company:
-                self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
-            else:
-                self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient,))
-                recipient_user = self.c.fetchone()
-                
-                if not recipient_user:
-                    await ctx.send("⚠️ Recipient user or company not found.")
-                    return
-                
-                self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
-            
-            # Deduct amount from sender company and apply tax
-            self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, sender))
-        
-        else:
-            # Sender is a user
-            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
-            user_balance = self.c.fetchone()
-            
-            if not user_balance or user_balance[0] < amount:
-                await ctx.send("⚠️ You lack funds to send this amount.")
-                return
-            
-            # Determine if recipient is a company or user
-            self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
-            recipient_company = self.c.fetchone()
-            
-            if recipient_company:
-                self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
-            else:
-                self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient,))
-                recipient_user = self.c.fetchone()
-                
-                if not recipient_user:
-                    await ctx.send("⚠️ Recipient user or company not found.")
-                    return
-                
-                self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
-            
-            # Deduct amount from sender user and apply tax
-            self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (amount, sender_id))
-        
-        # Apply tax
-        self.c.execute("SELECT corporate_rate FROM tax_rate")
-        corporate_rate = self.c.fetchone()[0]
-        tax = amount * corporate_rate
-        
-        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         
-        await ctx.send(f"✅ {sender} has sent ${amount} to {recipient} successfully, paying ${tax:.2f} in taxes.")
+        await ctx.send(f"✅ {amount} has been sent from **{company}** to <@{recipient}>.")
 
     @commands.command()
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
@@ -260,21 +219,21 @@ class Companies(commands.Cog):
         """Checks a company's stock value if they are public and displays an ownership pie chart."""
         
         # Fetch company information
-        self.c.execute("SELECT owner_id, balance, shares, is_public, board_members FROM companies WHERE name = ?", (company_name,))
+        self.c.execute("SELECT owner_id, balance, shares_available, total_shares, is_public, board_members FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         
         if not company:
             await ctx.send("⚠️ Company not found.")
             return
         
-        owner_id, balance, total_shares, is_public, board_members = company
+        owner_id, balance, shares_available, total_shares, is_public, board_members = company
         
         if not is_public:
             await ctx.send("⚠️ This company is private and does not have a public stock value.")
             return
         
         # Calculate stock price per share
-        price_per_share = balance / total_shares if total_shares > 0 else 0
+        price_per_share = balance / shares_available if shares_available > 0 else 0
         
         # Fetch ownership data
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
@@ -309,7 +268,7 @@ class Companies(commands.Cog):
         embed.add_field(name="🏢 Owner", value=owner.name if owner else f"User {owner_id}", inline=False)
         embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
         embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
-        embed.add_field(name="📈 Total Outstanding Shares", value=f"**{total_shares}**", inline=False)
+        embed.add_field(name="📈 Total Outstanding Shares", value=f"**{shares_available}**", inline=False)
         embed.set_image(url="attachment://stock_price.png")
         
         await ctx.send(embed=embed, file=file)
