@@ -163,11 +163,11 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, company))
         
         # Update recipient balance
-        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
+        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient.id))
         
         self.conn.commit()
         
-        await ctx.send(f"✅ {amount} has been sent from **{company}** to <@{recipient}>.")
+        await ctx.send(f"✅ {amount} has been sent from **{company}** to {recipient.mention}.")
 
     @commands.command()
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
