@@ -45,7 +45,7 @@ class Politics(commands.Cog):
         self.conn.commit()
 
     @commands.command()
-    async def join_district(self, ctx, district: str):
+    async def join(self, ctx, district: str):
         """Allows users to join a district and ensures they have a user profile in the database."""
         user_id = ctx.author.id
 

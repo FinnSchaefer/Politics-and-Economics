@@ -72,7 +72,7 @@ async def help(ctx):
     embed.add_field(
         name="🏛️ **Politics Commands**",
         value=(
-            "`join_district [District]` → Join a district.\n"
+            "`join [District]` → Join a district.\n"
             "`propose_bill [Name] [Desc] [Link]` → Senator-only: Propose a law.\n"
             "`list_bills` → View all proposed bills.\n"
             "`list_laws` → See all passed laws.\n"
