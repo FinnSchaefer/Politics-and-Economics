@@ -127,7 +127,7 @@ class Companies(commands.Cog):
         await ctx.send(f"📊 {company_name} is now publicly traded on the stock exchange! All available shares have been assigned to you.")
 
     @commands.command()
-    async def sendc(self, ctx, company_name: str, recipient: str, amount: int):
+    async def sendc(self, ctx, company_name: str, recipient: int, amount: int):
         """Send money from a company to another company or user while applying tax to government balance."""
         sender_id = ctx.author.id
         
@@ -157,17 +157,18 @@ class Companies(commands.Cog):
                 await ctx.send("⚠️ Recipient user or company not found.")
                 return
             
-            self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient))
+            self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, recipient_user.id))
         
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (amount, company_name))
         
-        self.c.execute("SELECT government_balance FROM tax_rate")
-        government_balance = self.c.fetchone()
+        self.c.execute("SELECT corporate_rate FROM tax_rate")
+        corporate_rate = self.c.fetchone()[0]
+        tax = amount * corporate_rate
         
-        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (amount * 0.1,))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ? WHERE id = 1", (tax,))
         self.conn.commit()
         
-        await ctx.send(f"✅ {company_name} has sent ${amount} to {recipient} successfully, paying ${amount * 0.1} in taxes.")
+        await ctx.send(f"✅ {company_name} has sent ${amount} to {recipient} successfully, paying ${tax} in taxes.")
 
     @commands.command()
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
