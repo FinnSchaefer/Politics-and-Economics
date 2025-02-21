@@ -306,6 +306,38 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
         
 
+    @commands.command(alias=["so"])
+    async def stock_ownership(self, ctx, member: discord.Member=None):
+        """Shows all stocks an individual owns."""
+        user = member if member else ctx.author
+        
+        self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = ?", (user.id,))
+        ownerships = self.c.fetchall()
+        
+        if not ownerships:
+            await ctx.send("📜 You do not own any stocks.")
+            return
+        
+        embed = discord.Embed(title="📈 Your Stock Ownership", color=discord.Color.blue())
+        
+        for company_name, shares in ownerships:
+            self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (company_name,))
+            company = self.c.fetchone()
+            if company:
+                balance, total_shares = company
+                price_per_share = balance / total_shares if total_shares > 0 else 0
+                embed.add_field(
+                    name=f"🏢 {company_name}",
+                    value=(
+                    f"📊 Shares Owned: {shares}\n"
+                    f"💰 Value per Share: ${price_per_share:.2f}\n"
+                    f"💸 Total Value: ${shares * price_per_share:.2f}"
+                    ),
+                    inline=False
+                )
+        
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=["stock","sp"])
     async def stock_price(self, ctx, company_name: str):
         """Checks a company's stock value if they are public and displays an ownership pie chart."""

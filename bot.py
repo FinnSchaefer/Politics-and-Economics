@@ -92,6 +92,7 @@ async def help(ctx):
             "`send2c [Company] [Amount]` → Transfer money to a company.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"
+            "`stock_ownership` → Check your stock ownership.\n"
         ),
         inline=False
     )
