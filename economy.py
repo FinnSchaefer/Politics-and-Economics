@@ -48,7 +48,7 @@ class Economy(commands.Cog):
     async def government_balance(self, ctx):
         """Check the government's balance."""
         self.c.execute("SELECT government_balance, trade_rate, corporate_rate FROM tax_rate")
-        government_balance, trade_rate, corporate_rate = self.c.fetchone()
+        government_balance, trade_rate, corporate_rate = await self.bot.loop.run_in_executor(None, self.c.fetchone)
         embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.blue())
         embed.add_field(name="Balance", value=f"**${government_balance}** 💰", inline=False)
         embed.add_field(name="Trade Rate", value=f"{trade_rate * 100}%", inline=True)
