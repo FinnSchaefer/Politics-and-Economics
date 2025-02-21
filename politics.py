@@ -84,7 +84,7 @@ class Politics(commands.Cog):
     @commands.has_role("RP Admin")
     async def force_district(self, ctx, user: discord.Member, district: str):
         """Forces a user to join a district."""
-        user_id= user.id
+        user_id = user.id
 
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
@@ -94,8 +94,12 @@ class Politics(commands.Cog):
             self.c.execute("UPDATE users SET district = ? WHERE user_id = ?", (district, user_id))
             self.conn.commit()
             await ctx.send(f"{user.mention} has been moved from **{old_district}** to **{district}**.")
+        else:
+            self.c.execute("INSERT INTO users (user_id, balance, district) VALUES (?, ?, ?)", (user_id, 500, district))
+            self.conn.commit()
+            await ctx.send(f"{user.mention} has been added to the district of **{district}** with a starting balance of $500.")
 
-        old_role = discord.utils.get(ctx.guild.roles, name=old_district)
+        old_role = discord.utils.get(ctx.guild.roles, name=row[0]) if row else None
         new_role = discord.utils.get(ctx.guild.roles, name=district)
         if old_role:
             await user.remove_roles(old_role)
