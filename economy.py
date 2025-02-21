@@ -80,21 +80,24 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ A database error occurred while processing the transaction.")
             return
 
-        # Check if sender is real
+        # Check if sender has sufficient balance
         try:
-            print("🔍 Checking if sender is a person...")
+            print("🔍 Checking if sender has sufficient balance...")
             self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
             sender_balance = self.c.fetchone()
-            print(f"👤 Sender balance: {sender_balance}")
+            if sender_balance is None:
+                await ctx.send("⚠️ You need to join a district before sending money.")
+                return
+            print(f"👤 Sender balance: {sender_balance[0]}")
         except sqlite3.Error as e:
-            print(f"❌ Database error while checking sender/recipient: {e}")
-            await ctx.send("⚠️ A database error occurred while identifying sender/recipient.")
+            print(f"❌ Database error while checking sender balance: {e}")
+            await ctx.send("⚠️ A database error occurred while identifying sender balance.")
             return
 
         tax = int(amount * trade_rate)
-        total_amount = amount + tax  # Tax calculation moved here to prevent undefined variable error
+        total_amount = amount + tax  # Tax calculation
 
-        if sender_balance is None or sender_balance[0] < total_amount:
+        if sender_balance[0] < total_amount:
             await ctx.send("⚠️ You have insufficient funds.")
             return
 
@@ -109,7 +112,7 @@ class Economy(commands.Cog):
         self.conn.commit()
 
         await ctx.send(f"💸 Transaction complete! Transferred **${amount}** (+ **${tax} tax**) to **{recipient_name}**.\n"
-                    f"🏛 **Government Balance Updated:** +${tax}. New total: **${new_government_balance}**")
+                f"🏛 **Government Balance Updated:** +${tax}. New total: **${new_government_balance}**")
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))

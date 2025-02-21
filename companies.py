@@ -65,7 +65,7 @@ class Companies(commands.Cog):
         await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
 
     @commands.command()
-    async def list_companies(self, ctx):
+    async def companies(self, ctx):
         """Lists all registered companies and the total outstanding shares."""
         self.c.execute("SELECT name, balance, shares_available, is_public, total_shares FROM companies")
         companies = self.c.fetchall()
@@ -78,14 +78,14 @@ class Companies(commands.Cog):
         
         for comp in companies:
             if comp[3]:  # If the company is public
-                price_per_share = comp[1] / comp[4] if comp[4] > 0 else 0
+                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
                 embed.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
                     f"💰 Balance: ${comp[1]:,.2f}\n"
                     f"📈 Price per Share: ${price_per_share:.2f}\n"
-                    f"📊 Total Shares: {comp[5]}\n"
-                    f"📊 Outstanding Shares: {comp[4]}\n"
+                    f"📊 Total Shares: {comp[4]}\n"
+                    f"📊 Outstanding Shares: {comp[2]}\n"
                     f"📈 Publicly Traded"
                     ),
                     inline=False
@@ -95,12 +95,12 @@ class Companies(commands.Cog):
                     name=f"🏢 {comp[0]}",
                     value=(
                     f"💰 Balance: ${comp[1]:,.2f}\n"
-                    f"📊 Total Shares: {comp[5]}\n"
+                    f"📊 Total Shares: {comp[4]}\n"
                     f"🔒 Privately Owned"
                     ),
                     inline=False
                 )
-            
+                
         await ctx.send(embed=embed)
     
     
