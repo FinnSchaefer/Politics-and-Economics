@@ -166,7 +166,7 @@ class Companies(commands.Cog):
         self.conn.commit()
         
         embed = discord.Embed(title="💸 Transfer Successful", color=discord.Color.green())
-        embed.add_field(name="Sender", value=sender_id.mention, inline=True)
+        embed.add_field(name="Sender", value=ctx.author.mention, inline=True)
         embed.add_field(name="Company", value=f"**{company}**", inline=True)
         embed.add_field(name="Amount", value=f"${amount:,.2f}", inline=True)
         await ctx.send(embed=embed)
