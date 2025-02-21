@@ -87,7 +87,7 @@ async def help(ctx):
         name="💰 **Economy Commands**",
         value=(
             "`balance` → Check your balance.\n"
-            "`send_money [User] [Amount]` → Transfer money.\n"
+            "`send [User] [Amount]` → Transfer money.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"
         ),
@@ -98,9 +98,9 @@ async def help(ctx):
     embed.add_field(
         name="🏢 **Company Commands**",
         value=(
-            "`listed_companies` → View all registered companies.\n"
+            "`list_companies` → View all registered companies.\n"
             "`create_company [Name]` → Start a company.\n"
-            "`send_company_money [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
+            "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
             "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
             "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
             "`appoint_board_member [Company] @User` → Assign a board member.\n"
