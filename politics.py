@@ -32,7 +32,7 @@ class Politics(commands.Cog):
             link TEXT,
             proposed_date TEXT,
             votes TEXT,
-            passed INTEGER DEFAULT 0
+            passed INTEGER DEFAULT 0,
             senate_number INTEGER DEFAULT 0
         )
         """)
