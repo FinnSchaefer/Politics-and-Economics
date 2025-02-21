@@ -44,7 +44,7 @@ class Economy(commands.Cog):
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
-    @commands.command(aliases=['govbal','gb'])
+    @commands.command(aliases=['balgov','bg'])
     async def government_balance(self, ctx):
         """Check the government's balance."""
         self.c.execute("SELECT government_balance FROM tax_rate")
