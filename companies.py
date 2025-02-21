@@ -77,16 +77,28 @@ class Companies(commands.Cog):
         embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
         for comp in companies:
-            embed.add_field(
-            name=f"🏢 {comp[0]}",
-            value=f"💰 Balance: ${comp[1]:,.2f}\n📈 Shares: {comp[2]}\n{'📊 Publicly Traded' if comp[3] else '🔒 Private'}",
-            inline=False
+            if comp[3]:  # If the company is public
+                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                embed.add_field(
+                    name=f"🏢 {comp[0]}",
+                    value=(
+                        f"💰 Balance: ${comp[1]:,.2f}\n"
+                        f"📈 Price per Share: ${price_per_share:.2f}\n"
+                        f"📊 Total Shares: {comp[2]}\n"
+                        f"📊 Outstanding Shares: {comp[2]}\n"
+                        f"📈 Publicly Traded"
+                    ),
+                    inline=False
+                )
+            else:  # If the company is private
+                embed.add_field(
+                name=f"🏢 {comp[0]}",
+                value=(
+                        f"💰 Balance: ${comp[1]:,.2f}\n"
+                        f"🔒 Privately Owned"
+                    ),
+                inline=False
             )
-        embed.add_field(
-            name="📊 Total Outstanding Shares",
-            value=f"**{total_shares}**",
-            inline=False
-        )
         
         await ctx.send(embed=embed)
     
@@ -253,7 +265,7 @@ class Companies(commands.Cog):
         
         # Save pie chart to image
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png')
+        fig.savefig(buffer, format='png')
         buffer.seek(0)
         
         # Fetch owner and board members
