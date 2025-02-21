@@ -490,7 +490,7 @@ class Companies(commands.Cog):
             return
         
         if(amount > total_shares):
-            await ctx.send("⚠️ You cannot sell more shares than the total outstanding shares.")
+            await ctx.send("⚠️ You cannot sell more shares than the total floating shares.")
             return
         
         self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (user_id, company_name))
