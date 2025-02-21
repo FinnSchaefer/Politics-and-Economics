@@ -185,21 +185,20 @@ class Politics(commands.Cog):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
         self.c.execute("SELECT COUNT(*) FROM bills WHERE senate_number != 0")
         senate_session = self.c.fetchone()[0]
-        if senate_session:
-            # Step 1: Remove Senator and Chancellor roles from all members
-            senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
-            chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
-            if senator_role:
-                for member in senator_role.members:
-                    await member.remove_roles(senator_role)
-            if chancellor_role:
-                for member in chancellor_role.members:
-                    await member.remove_roles(chancellor_role)
-            await ctx.send("All previous Senators and the Chancellor have been removed.")
+        # Step 1: Remove Senator and Chancellor roles from all members
+        senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
+        chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
+        if senator_role:
+            for member in senator_role.members:
+                await member.remove_roles(senator_role)
+        if chancellor_role:
+            for member in chancellor_role.members:
+                await member.remove_roles(chancellor_role)
+        await ctx.send("All previous Senators and the Chancellor have been removed.")
 
-            # Step 2: Reset senator and chancellor status in the database
-            self.c.execute("UPDATE users SET senator = 0, chancellor = 0")
-            self.conn.commit()
+        # Step 2: Reset senator and chancellor status in the database
+        self.c.execute("UPDATE users SET senator = 0, chancellor = 0")
+        self.conn.commit()
 
         # Step 3: Clear election data
         self.c.execute("DELETE FROM elections")
