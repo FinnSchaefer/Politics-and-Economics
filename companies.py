@@ -120,7 +120,7 @@ class Companies(commands.Cog):
         """Allows a company to go public on the stock exchange and assigns all available shares to the owner."""
         sender_id = ctx.author.id
         
-        self.c.execute("SELECT is_public, shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
+        self.c.execute("SELECT is_public, shares_available, total_shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
         
         if not company:
@@ -131,10 +131,11 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ This company is already publicly listed.")
             return
 
-        shares = company[1]
+        shares_available = company[1]
+        total_shares = company[2]
         
         self.c.execute("UPDATE companies SET is_public = 1 WHERE name = ?", (company_name,))
-        self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (sender_id, company_name, shares, shares))
+        self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (sender_id, company_name, shares_available, shares_available))
         self.conn.commit()
         
         await ctx.send(f"📊 {company_name} is now publicly traded on the stock exchange! All available shares have been assigned to you.")
