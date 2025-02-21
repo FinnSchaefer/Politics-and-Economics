@@ -145,7 +145,12 @@ class Companies(commands.Cog):
         if recipient_balance:
             self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (amount, recipient))
         else:
-            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient,))
+            recipient_user = await self.bot.fetch_user(recipient)
+            if not recipient_user:
+                await ctx.send("⚠️ Recipient user or company not found.")
+                return
+            
+            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (recipient_user.id,))
             recipient_balance = self.c.fetchone()
             
             if not recipient_balance:
@@ -180,10 +185,6 @@ class Companies(commands.Cog):
         
         if not is_public:
             await ctx.send("⚠️ This company must be publicly listed before diluting shares.")
-            return
-
-        if new_shares <= current_shares:
-            await ctx.send("⚠️ New share amount must be greater than current shares.")
             return
 
         # Calculate the new stock value after issuing new shares
