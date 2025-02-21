@@ -39,7 +39,7 @@ class Companies(commands.Cog):
         self.conn.commit()
 
 
-    @commands.command()
+    @commands.command(aliases=["cc"])
     async def create_company(self, ctx, company_name: str):
         """Creates a new company for the user."""
         owner_id = ctx.author.id
@@ -169,7 +169,7 @@ class Companies(commands.Cog):
         
         await ctx.send(f"✅ {amount} has been sent from **{company}** to {recipient.mention}.")
 
-    @commands.command()
+    @commands.command(aliases=["issue","is"])
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
         """Dilutes a company's shares by increasing the total amount, only if public."""
         sender_id = ctx.author.id
@@ -226,7 +226,7 @@ class Companies(commands.Cog):
         await ctx.send(f"🏛️ {member.mention} has been appointed as a board member of **{company_name}**!")
         
 
-    @commands.command()
+    @commands.command(aliases=["stock","sp"])
     async def stock_price(self, ctx, company_name: str):
         """Checks a company's stock value if they are public and displays an ownership pie chart."""
         
@@ -285,7 +285,7 @@ class Companies(commands.Cog):
         
         await ctx.send(embed=embed, file=file)
 
-    @commands.command()
+    @commands.command(aliases=["buyshares","bs"])
     async def buy_shares(self, ctx, company_name: str, amount: int):
         """Allows users to buy shares in a public company, with corporate tax applied."""
         user_id = ctx.author.id
@@ -330,7 +330,7 @@ class Companies(commands.Cog):
         
         await ctx.send(f"✅ You have purchased {amount} shares of **{company_name}** for **${total_cost:.2f}**, paying **${tax:.2f}** in corporate tax.")
 
-    @commands.command()
+    @commands.command(aliases=["sellshares","ss"])
     async def sell_shares(self, ctx, company_name: str, amount: int):
         """Allows users to sell shares of a public company, with corporate tax applied."""
         user_id = ctx.author.id
