@@ -373,7 +373,7 @@ class Companies(commands.Cog):
             sizes.append(shares)
         
         # Add outstanding shares to the pie chart
-        labels.append("Outstanding Shares")
+        labels.append("Floating Shares")
         sizes.append(shares_available)
         
         # Create pie chart
