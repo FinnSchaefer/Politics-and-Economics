@@ -145,9 +145,9 @@ class Companies(commands.Cog):
 
 
     @commands.command(aliases=["send2c","s2c"])
-    async def send_to_company(self, ctx, sender: discord.Member, company: str, amount: float):
+    async def send_to_company(self, ctx, company: str, amount: float):
         """Send money from a user to a company."""
-        sender_id = sender.id
+        sender_id = ctx.author.id
 
         # Check if the sender has enough balance
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
@@ -166,7 +166,7 @@ class Companies(commands.Cog):
         self.conn.commit()
         
         embed = discord.Embed(title="💸 Transfer Successful", color=discord.Color.green())
-        embed.add_field(name="Sender", value=sender.mention, inline=True)
+        embed.add_field(name="Sender", value=sender_id.mention, inline=True)
         embed.add_field(name="Company", value=f"**{company}**", inline=True)
         embed.add_field(name="Amount", value=f"${amount:,.2f}", inline=True)
         await ctx.send(embed=embed)
