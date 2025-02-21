@@ -214,7 +214,7 @@ class Politics(commands.Cog):
                 continue
 
             self.c.execute("INSERT INTO elections (district, voter, vote_senate, vote_chancellor) VALUES (?, ?, ?, ?)",
-                (district, json.dumps({}), json.dumps({})))
+                (district, json.dumps([]), json.dumps([]), json.dumps([])))
             self.conn.commit()
 
         embed = discord.Embed(
