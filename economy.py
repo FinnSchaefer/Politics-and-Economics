@@ -94,7 +94,7 @@ class Economy(commands.Cog):
         tax = int(amount * trade_rate)
         total_amount = amount + tax  # Tax calculation moved here to prevent undefined variable error
 
-        if not sender_balance or sender_balance[0] < total_amount:
+        if sender_balance is None or sender_balance[0] < total_amount:
             await ctx.send("⚠️ You have insufficient funds.")
             return
 

@@ -67,14 +67,13 @@ class Companies(commands.Cog):
     @commands.command()
     async def list_companies(self, ctx):
         """Lists all registered companies and the total outstanding shares."""
-        self.c.execute("SELECT name, balance, shares, is_public FROM companies")
+        self.c.execute("SELECT name, balance, shares_available, is_public, total_shares FROM companies")
         companies = self.c.fetchall()
 
         if not companies:
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        total_shares = sum(comp[4] for comp in companies)
         embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
         for comp in companies:
