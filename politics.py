@@ -399,7 +399,6 @@ class Politics(commands.Cog):
             senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
             if senator_role:
                 await member.add_roles(senator_role)
-                await ctx.send(f"{member.mention} has been assigned as the Senator of {district}.")
             else:
                 await ctx.send("Senator role not found in the guild.")
         else:
