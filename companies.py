@@ -392,7 +392,7 @@ class Companies(commands.Cog):
         embed.add_field(name="🏢 Owner", value=owner.name if owner else f"User {owner_id}", inline=False)
         embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
         embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
-        embed.add_field(name="📈 Total Outstanding Shares", value=f"**{shares_available}**", inline=False)
+        embed.add_field(name="📈 Total Floating Shares", value=f"**{shares_available}**", inline=False)
         embed.set_image(url="attachment://stock_price.png")
         
         await ctx.send(embed=embed, file=file)
