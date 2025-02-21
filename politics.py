@@ -185,7 +185,7 @@ class Politics(commands.Cog):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
         self.c.execute("SELECT COUNT(*) FROM bills WHERE senate_number != 0")
         senate_session = self.c.fetchone()[0]
-        if senate_session != 0:
+        if senate_session:
             # Step 1: Remove Senator and Chancellor roles from all members
             senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
             chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
