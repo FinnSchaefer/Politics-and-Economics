@@ -133,10 +133,10 @@ class Companies(commands.Cog):
         
         # check if sender is owner of company
         self.c.execute("SELECT balance FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
-        sender_balance = self.c.fetchone()
+        company_balance = self.c.fetchone()
         
-        if not sender_balance or sender_balance[0] < amount:
-            await ctx.send("⚠️ Compnay lacks funds to send this amount.")
+        if not company_balance or company_balance[0] < amount:
+            await ctx.send("⚠️ Company lacks funds to send this amount.")
             return
         
         self.c.execute("SELECT balance FROM companies WHERE name = ?", (recipient,))
