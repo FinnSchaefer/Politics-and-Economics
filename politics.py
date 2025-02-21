@@ -300,43 +300,83 @@ class Politics(commands.Cog):
         if not row:
             await ctx.send(f"No election is currently running in {district}.")
             return
+
         self.c.execute("SELECT user_id FROM users WHERE district = ?", (district,))
         voters = [row[0] for row in self.c.fetchall()]
 
         if len(voters) == 1:
             winner = voters[0]
             await self.assign_senator(ctx, winner, district)
-            await ctx.send(f"{ctx.author.mention}, {candidate.mention} is the only candidate and has been automatically assigned as the Senator of {district}.")
+            embed = discord.Embed(
+                title="Election Result",
+                description=f"{candidate.mention} is the only candidate and has been automatically assigned as the Senator of **{district}**.",
+                color=discord.Color.green()
+            )
+            await ctx.send(embed=embed)
             return
+
         votes = json.loads(row[0])
         votes[str(voter_id)] = candidate.id
         self.c.execute("UPDATE elections SET votes = ? WHERE district = ?", (json.dumps(votes), district))
         self.conn.commit()
 
-        await ctx.send(f"{ctx.author.mention} has voted for {candidate.mention} in **{district}**!")
+        embed = discord.Embed(
+            title="Vote Recorded",
+            description=f"{ctx.author.mention} has voted for {candidate.mention} in **{district}**!",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
 
-    @tasks.loop(hours=24)
-    async def check_elections(self):
-        """Checks elections and assigns senators based on votes."""
-        self.c.execute("SELECT district, votes FROM elections")
-        elections = self.c.fetchall()
-
-        for district, votes in elections:
-            votes = json.loads(votes)
-
-            if not votes:
-                continue
-
+        # Check if all voters have voted
+        if len(votes) == len(voters):
             vote_counts = {}
-            for voter, candidate in votes.items():
-                if candidate not in vote_counts:
-                    vote_counts[candidate] = 0
-                vote_counts[candidate] += 1
+            for voter, candidate_id in votes.items():
+                if candidate_id not in vote_counts:
+                    vote_counts[candidate_id] = 0
+                vote_counts[candidate_id] += 1
 
             winner = max(vote_counts, key=vote_counts.get)
-            guild = self.bot.get_guild(ctx.guild.id)
-            ctx = discord.utils.get(self.bot.get_all_channels(), guild__id=guild.id)
             await self.assign_senator(ctx, winner, district)
+            winner_member = ctx.guild.get_member(winner)
+            embed = discord.Embed(
+                title="Election Results",
+                description=f"🗳️ All votes are in! {winner_member.mention} has been elected as the Senator of **{district}**!",
+                color=discord.Color.green()
+            )
+            await ctx.send(embed=embed)
+
+        # Schedule to close the election after 24 hours
+        if not hasattr(self, 'election_timer'):
+            self.election_timer = asyncio.create_task(self.end_election(ctx, district))
+        else:
+            await ctx.send(f"⚠️ No votes were cast in the election for **{district}**.")
+        del self.election_timer
+
+    async def end_election(self, ctx, district):
+        await asyncio.sleep(86400)
+        self.c.execute("SELECT votes FROM elections WHERE district = ?", (district,))
+        row = self.c.fetchone()
+        if row:
+            votes = json.loads(row[0])
+            if votes:
+                vote_counts = {}
+                for voter, candidate_id in votes.items():
+                    if candidate_id not in vote_counts:
+                        vote_counts[candidate_id] = 0
+                    vote_counts[candidate_id] += 1
+
+            winner_id = max(vote_counts, key=vote_counts.get)
+            winner_member = ctx.guild.get_member(winner_id)
+            await self.assign_senator(ctx, winner_id, district)
+
+            embed = discord.Embed(
+                title="Election Results",
+                description=f"The election for the district of **{district}** has concluded.",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="Winner", value=f"{winner_member.mention}", inline=False)
+            embed.add_field(name="Votes", value=f"{vote_counts[winner_id]} votes", inline=False)
+            await ctx.send(embed=embed)
 
     async def assign_senator(self, ctx, user_id, district):
         """Assigns the senator role to the election winner and ensures the database schema is correct."""
