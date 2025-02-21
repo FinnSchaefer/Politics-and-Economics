@@ -30,11 +30,8 @@ class Economy(commands.Cog):
     @commands.command()
     async def balance(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
-        
-        user = member if member else ctx.author  # Default to the command sender if no user is mentioned
-        user_id = user.id
 
-        if user.name.lower() == "government":
+        if member == "gov":
             # Fetch government balance
             self.c.execute("SELECT government_balance FROM tax_rate")
             row = self.c.fetchone()
@@ -43,6 +40,8 @@ class Economy(commands.Cog):
             else:
                 await ctx.send("⚠️ Government balance information is missing.")
         else:
+            user = member if member else ctx.author  # Default to the command sender if no user is mentioned
+            user_id = user.id
             # Fetch user balance
             self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
             row = self.c.fetchone()
