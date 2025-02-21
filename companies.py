@@ -65,7 +65,7 @@ class Companies(commands.Cog):
 
     @commands.command()
     async def list_companies(self, ctx):
-        """Lists all registered companies."""
+        """Lists all registered companies and the total outstanding shares."""
         self.c.execute("SELECT name, balance, shares, is_public FROM companies")
         companies = self.c.fetchall()
 
@@ -73,12 +73,22 @@ class Companies(commands.Cog):
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        company_list = "\n".join([
-            f"🏢 **{comp[0]}** - 💰 Balance: ${comp[1]} - 📈 Shares: {comp[2]} - {'📊 Publicly Traded' if comp[3] else '🔒 Private'}"
-            for comp in companies
-        ])
+        total_shares = sum(comp[2] for comp in companies)
+        embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
-        await ctx.send(f"📢 **Registered Companies:**\n{company_list}")
+        for comp in companies:
+            embed.add_field(
+            name=f"🏢 {comp[0]}",
+            value=f"💰 Balance: ${comp[1]:,.2f}\n📈 Shares: {comp[2]}\n{'📊 Publicly Traded' if comp[3] else '🔒 Private'}",
+            inline=False
+            )
+        embed.add_field(
+            name="📊 Total Outstanding Shares",
+            value=f"**{total_shares}**",
+            inline=False
+        )
+        
+        await ctx.send(embed=embed)
     
     @commands.command()
     async def make_public(self, ctx, company_name: str):
@@ -208,14 +218,14 @@ class Companies(commands.Cog):
         """Checks a company's stock value if they are public and displays an ownership pie chart."""
         
         # Fetch company information
-        self.c.execute("SELECT balance, shares, is_public FROM companies WHERE name = ?", (company_name,))
+        self.c.execute("SELECT owner_id, balance, shares, is_public, board_members FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         
         if not company:
             await ctx.send("⚠️ Company not found.")
             return
         
-        balance, total_shares, is_public = company
+        owner_id, balance, total_shares, is_public, board_members = company
         
         if not is_public:
             await ctx.send("⚠️ This company is private and does not have a public stock value.")
@@ -227,12 +237,6 @@ class Companies(commands.Cog):
         # Fetch ownership data
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
         ownership_data = self.c.fetchall()
-        
-        if not ownership_data:
-            embed = discord.Embed(title=f"📈 {company_name} Stock Information", color=discord.Color.blue())
-            embed.add_field(name="🏢 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
-            await ctx.send(embed=embed)
-            return
         
         # Prepare data for pie chart
         labels = []
@@ -252,10 +256,18 @@ class Companies(commands.Cog):
         plt.savefig(buffer, format='png')
         buffer.seek(0)
         
+        # Fetch owner and board members
+        owner = self.bot.get_user(owner_id)
+        board_members = json.loads(board_members)
+        board_member_names = [self.bot.get_user(member_id).name for member_id in board_members if self.bot.get_user(member_id)]
+        
         # Send stock price and ownership chart
         file = discord.File(buffer, filename="stock_price.png")
         embed = discord.Embed(title=f"📈 {company_name} Stock Information", color=discord.Color.blue())
-        embed.add_field(name="🏢 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
+        embed.add_field(name="🏢 Owner", value=owner.name if owner else f"User {owner_id}", inline=False)
+        embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
+        embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
+        embed.add_field(name="📈 Total Outstanding Shares", value=f"**{total_shares}**", inline=False)
         embed.set_image(url="attachment://stock_price.png")
         
         await ctx.send(embed=embed, file=file)
@@ -283,7 +295,7 @@ class Companies(commands.Cog):
             price_per_share = balance / total_shares if total_shares > 0 else 0
             total_cost += price_per_share
             balance += price_per_share
-            total_shares += 1
+            total_shares -= 1
         
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance = self.c.fetchone()
@@ -339,7 +351,7 @@ class Companies(commands.Cog):
             price_per_share = balance / total_shares if total_shares > 0 else 0
             total_earnings += price_per_share
             balance -= price_per_share
-            total_shares -= 1
+            total_shares += 1
         
         tax = total_earnings * corporate_rate
         
