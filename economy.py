@@ -26,8 +26,7 @@ class Economy(commands.Cog):
             print("🔹 No tax rate found, inserting default values.")
             self.c.execute("INSERT INTO tax_rate (trade_rate, corporate_rate,government_balance) VALUES (0.05, 0.1, 0)")
             self.conn.commit()
-
-    @commands.command()
+            
     @commands.command(aliases=['balance', 'bal'])
     async def b(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
