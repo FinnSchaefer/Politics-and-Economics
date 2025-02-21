@@ -104,6 +104,18 @@ class Companies(commands.Cog):
             
         await ctx.send(embed=embed)
     
+    
+    @commands.command()
+    @commands.has_role("RP Admin")
+    async def spawn_money(self, ctx, member: discord.Member, amount: int):
+        """Spawns money to a user's balance."""
+        user = member.id
+        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, user))
+        self.conn.commit()
+        
+        await ctx.send(f"✅ {amount} has been spawned to user ID {user}.")
+    
+    
     @commands.command()
     async def make_public(self, ctx, company_name: str):
         """Allows a company to go public on the stock exchange and assigns all available shares to the owner."""
@@ -129,7 +141,7 @@ class Companies(commands.Cog):
         await ctx.send(f"📊 {company_name} is now publicly traded on the stock exchange! All available shares have been assigned to you.")
 
     @commands.command()
-    async def sendc(self, ctx, company: str, recipient: int, amount: int):
+    async def sendc(self, ctx, company: str, recipient: discord.Member, amount: int):
         """Send money from a company to a user, from a user to a company, or between companies while applying tax to government balance."""
         sender_id = ctx.author.id
 
