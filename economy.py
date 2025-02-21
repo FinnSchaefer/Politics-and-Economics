@@ -31,7 +31,7 @@ class Economy(commands.Cog):
     async def b(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
 
-        if member and member.display_name.lower() == "gov":
+        if member.display_name.lower() == "gov":
             # Fetch government balance
             self.c.execute("SELECT government_balance FROM tax_rate")
             row = self.c.fetchone()
