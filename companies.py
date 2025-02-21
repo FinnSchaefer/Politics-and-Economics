@@ -87,7 +87,7 @@ class Companies(commands.Cog):
                 embed.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
-                    f"👤 Owner: {owner_name}"
+                    f"👤 Owner: {owner_name}\n"
                     f"💰 Balance: ${comp[1]:,.2f}\n"
                     f"📈 Price per Share: ${price_per_share:.2f}\n"
                     f"📊 Total Shares: {comp[4]}\n"
@@ -100,7 +100,7 @@ class Companies(commands.Cog):
                 embed.add_field(
                 name=f"🏢 {comp[0]}",
                 value=(
-                f"👤 Owner: {owner_name}"
+                f"👤 Owner: {owner_name}\n"
                 f"💰 Balance: ${comp[1]:,.2f}\n"
                 f"📊 Total Shares: {comp[4]}\n"
                 f"🔒 Privately Owned\n"
