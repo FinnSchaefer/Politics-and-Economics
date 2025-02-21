@@ -454,18 +454,18 @@ class Companies(commands.Cog):
         self.conn.commit()
         
         # Check if the user now owns a majority of shares
-        self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (user_id, company_name))
-        user_shares = self.c.fetchone()[0]
-        
-        if user_shares > total_shares / 2:
-            self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
-            embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
+        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ? ORDER BY shares DESC LIMIT 1", (company_name,))
+        largest_shareholder = self.c.fetchone()
         
         embed = discord.Embed(title="📈 Shares Purchased", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=False)
         embed.add_field(name="Shares Purchased", value=amount, inline=False)
         embed.add_field(name="Total Cost", value=f"${total_cost:.2f}", inline=False)
         embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
+        if largest_shareholder and largest_shareholder[0] == user_id:
+            self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
+            embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
+            
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["sellshares","ss"])
@@ -520,11 +520,21 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         
+        # Check if the user is no longer the majority shareholder
+        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ? ORDER BY shares DESC LIMIT 1", (company_name,))
+        largest_shareholder = self.c.fetchone()
+
+        
         embed = discord.Embed(title="📉 Shares Sold", color=discord.Color.red())
         embed.add_field(name="Company", value=company_name, inline=False)
         embed.add_field(name="Shares Sold", value=amount, inline=False)
         embed.add_field(name="Total Earnings", value=f"${total_earnings:.2f}", inline=False)
         embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
+        if largest_shareholder and largest_shareholder[0] != user_id:
+            self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (largest_shareholder[0], company_name))
+            new_owner = self.bot.get_user(largest_shareholder[0])
+            embed.add_field(name="New Owner", value=new_owner.mention if new_owner else f"User {largest_shareholder[0]}", inline=False)
+        
         await ctx.send(embed=embed)
 
 
