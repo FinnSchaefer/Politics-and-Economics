@@ -306,7 +306,7 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
         
 
-    @commands.command(alias=["so"])
+    @commands.command(alias="so")
     async def stock_ownership(self, ctx, member: discord.Member=None):
         """Shows all stocks an individual owns."""
         user = member if member else ctx.author  # Default to the command sender if no user is mentioned
