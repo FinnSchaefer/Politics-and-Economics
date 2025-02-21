@@ -309,7 +309,7 @@ class Companies(commands.Cog):
     @commands.command(alias=["so"])
     async def stock_ownership(self, ctx, member: discord.Member=None):
         """Shows all stocks an individual owns."""
-        user = member if member else ctx.author
+        user = ctx.author if member is None else member
         
         self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = ?", (user.id,))
         ownerships = self.c.fetchall()
