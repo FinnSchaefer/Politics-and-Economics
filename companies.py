@@ -428,6 +428,10 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ There are not enough shares available to buy this amount.")
             return
         
+        
+        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ? ORDER BY shares DESC LIMIT 1", (company_name,))
+        prevlarge_shareholder = self.c.fetchone()
+        
         total_cost = 0
         for _ in range(amount):
             price_per_share = balance / total_shares if total_shares > 0 else 0
@@ -451,6 +455,7 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE companies SET balance = ?, shares_available = ? WHERE name = ?", (balance, shares_available, company_name))
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user_id, company_name, amount, amount))
+        self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
         self.conn.commit()
         
         # Check if the user now owns a majority of shares
@@ -462,7 +467,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Shares Purchased", value=amount, inline=False)
         embed.add_field(name="Total Cost", value=f"${total_cost:.2f}", inline=False)
         embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
-        if largest_shareholder and largest_shareholder[0] == user_id:
+        if (largest_shareholder and prevlarge_shareholder) and (prevlarge_shareholder[0] != largest_shareholder[0]):
             self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (user_id, company_name))
             self.conn.commit()
             embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
