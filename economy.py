@@ -28,6 +28,7 @@ class Economy(commands.Cog):
             self.conn.commit()
 
     @commands.command()
+    @commands.command(aliases=['balance', 'bal'])
     async def b(self, ctx, member: discord.Member = None):
         """Check your balance or another user's balance."""
         

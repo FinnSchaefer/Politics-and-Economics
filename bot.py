@@ -86,7 +86,7 @@ async def help(ctx):
     embed.add_field(
         name="💰 **Economy Commands**",
         value=(
-            "`b` → Check your balance.\n"
+            "`balance` → Check your balance.\n"
             "`send [User] [Amount]` → Transfer money.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"
