@@ -372,6 +372,10 @@ class Companies(commands.Cog):
             labels.append(user.name if user else f"User {owner_id}")
             sizes.append(shares)
         
+        # Add outstanding shares to the pie chart
+        labels.append("Outstanding Shares")
+        sizes.append(shares_available)
+        
         # Create pie chart
         fig, ax = plt.subplots()
         ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
