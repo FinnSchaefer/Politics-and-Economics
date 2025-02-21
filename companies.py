@@ -204,6 +204,44 @@ class Companies(commands.Cog):
         embed.add_field(name="Amount", value=f"${amount:,.2f}", inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def delete_company(self, ctx, company_name: str):
+        """Deletes a company and liquidates its assets."""
+        sender_id = ctx.author.id
+
+        # Check if the sender owns the company
+        self.c.execute("SELECT balance, is_public, shares_available, total_shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
+        company = self.c.fetchone()
+
+        if not company:
+            await ctx.send("⚠️ You do not own this company or it does not exist.")
+            return
+
+        balance, is_public, shares_available, total_shares = company
+
+        if is_public:
+            # Cash out all shareholders
+            self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
+            ownerships = self.c.fetchall()
+
+            for owner_id, shares in ownerships:
+                share_value = (balance / total_shares) * shares
+                self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (share_value, owner_id))
+                self.c.execute("DELETE FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company_name))
+
+        else:
+            # Liquidate all funds to the owner
+            self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (balance, sender_id))
+
+        # Delete the company
+        self.c.execute("DELETE FROM companies WHERE name = ?", (company_name,))
+        self.conn.commit()
+
+        embed = discord.Embed(title="🏢 Company Deleted", color=discord.Color.red())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="Message", value="The company has been successfully deleted and all assets have been liquidated.", inline=False)
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=["issue","is"])
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
         """Dilutes a company's shares by increasing the total amount, only if public."""
