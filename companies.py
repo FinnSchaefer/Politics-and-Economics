@@ -254,6 +254,10 @@ class Companies(commands.Cog):
         """Dilutes a company's shares by increasing the total amount, only if public."""
         sender_id = ctx.author.id
         
+        if new_shares <= 0:
+            await ctx.send("⚠️ You must issue a positive amount of shares.")
+            return
+        
         self.c.execute("SELECT balance, total_shares, is_public FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
         
