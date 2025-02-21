@@ -301,20 +301,6 @@ class Politics(commands.Cog):
             await ctx.send(f"⚠️ No election is currently running in {district}.")
             return
 
-        self.c.execute("SELECT user_id FROM users WHERE district = ?", (district,))
-        voters = [row[0] for row in self.c.fetchall()]
-
-        if len(voters) == 1:
-            await self.assign_senator(ctx, voters[0], district)
-            embed = discord.Embed(
-                title="Automatic Election Result",
-                description=f"📢 {ctx.guild.get_member(voters[0]).mention} has automatically won the election for Senator of {district} as they were the only candidate.",
-                color=discord.Color.blue()
-            )
-            await ctx.send(embed=embed)
-            await self.end_senator_election(ctx, district)
-            return
-        
         votes = json.loads(row[0])
         if str(voter_id) in votes:
             await ctx.send(f"{ctx.author.mention}, you have already voted in this election.")
