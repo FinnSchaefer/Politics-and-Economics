@@ -438,10 +438,6 @@ class Companies(commands.Cog):
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance = self.c.fetchone()
         
-        if not user_balance or user_balance[0] < total_cost:
-            await ctx.send("⚠️ You do not have enough funds to buy these shares.")
-            return
-        
         self.c.execute("SELECT corporate_rate, government_balance FROM tax_rate")
         tax_row = self.c.fetchone()
         corporate_rate, government_balance = tax_row
