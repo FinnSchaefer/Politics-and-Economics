@@ -41,7 +41,7 @@ def setup_database():
     c.execute("""
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
-        balance INTEGER DEFAULT 0,
+        balance REAL DEFAULT 0.0,
         district TEXT,
         senator INTEGER DEFAULT 0,
         chancellor INTEGER DEFAULT 0
@@ -141,7 +141,8 @@ async def on_ready():
 
     # Start the scheduler once the bot is ready
     if not scheduler.running:
-        scheduler.add_job(distribute_ubi, "interval", days=1)
+        scheduler.add_job(distribute_ubi, "cron", hour=5, minute=0)  # 12am EST (5am UTC)
+        scheduler.add_job(distribute_ubi, "cron", hour=17, minute=0)  # 12pm EST (5pm UTC)
         scheduler.start()
 
 # Test Ping Command

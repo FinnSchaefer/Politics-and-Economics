@@ -19,7 +19,7 @@ class Companies(commands.Cog):
             company_id INTEGER PRIMARY KEY AUTOINCREMENT,
             owner_id INTEGER,
             name TEXT UNIQUE,
-            balance INTEGER DEFAULT 0,
+            balance REAL DEFAULT 0.0,
             shares INTEGER DEFAULT 100,
             board_members TEXT DEFAULT '[]',
             is_public INTEGER DEFAULT 0
@@ -275,8 +275,12 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ This company is private and does not sell shares.")
             return
         
-        price_per_share = balance / total_shares if total_shares > 0 else 0
-        total_cost = price_per_share * amount
+        total_cost = 0
+        for _ in range(amount):
+            price_per_share = balance / total_shares if total_shares > 0 else 0
+            total_cost += price_per_share
+            balance += price_per_share
+            total_shares += 1
         
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance = self.c.fetchone()
@@ -291,7 +295,7 @@ class Companies(commands.Cog):
         tax = total_cost * corporate_rate
         
         self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (total_cost + tax, user_id))
-        self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (total_cost, company_name))
+        self.c.execute("UPDATE companies SET balance = ? WHERE name = ?", (balance, company_name))
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user_id, company_name, amount, amount))
         self.conn.commit()
@@ -316,9 +320,6 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ This company is private and does not allow share selling.")
             return
         
-        price_per_share = balance / total_shares if total_shares > 0 else 0
-        total_earnings = price_per_share * amount
-        
         self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (user_id, company_name))
         user_shares = self.c.fetchone()
         
@@ -329,11 +330,19 @@ class Companies(commands.Cog):
         self.c.execute("SELECT corporate_rate, government_balance FROM tax_rate")
         tax_row = self.c.fetchone()
         corporate_rate, government_balance = tax_row
+        
+        total_earnings = 0
+        for _ in range(amount):
+            price_per_share = balance / total_shares if total_shares > 0 else 0
+            total_earnings += price_per_share
+            balance -= price_per_share
+            total_shares -= 1
+        
         tax = total_earnings * corporate_rate
         
         self.c.execute("UPDATE ownership SET shares = shares - ? WHERE owner_id = ? AND company_name = ?", (amount, user_id, company_name))
         self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (total_earnings - tax, user_id))
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (total_earnings, company_name))
+        self.c.execute("UPDATE companies SET balance = ? WHERE name = ?", (balance, company_name))
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         

@@ -15,7 +15,7 @@ class Economy(commands.Cog):
         CREATE TABLE IF NOT EXISTS tax_rate (
             trade_rate REAL DEFAULT 0.05,
             corporate_rate REAL DEFAULT 0.1,
-            government_balance INTEGER DEFAULT 0
+            government_balance REAL DEFAULT 0
     )
     """)
         self.conn.commit()

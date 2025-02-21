@@ -71,6 +71,15 @@ class Politics(commands.Cog):
         
         await ctx.send(f"{ctx.author.mention} has joined the district of **{district}**!")
         
+        
+    @commands.command()
+    @commands.has_role("RP Admin")
+    async def stimulus(self, ctx, district: str, amount: float):
+        """Admin command to send stimulus to a district."""
+        self.c.execute("UPDATE users SET balance = balance + ? WHERE district = ?", (amount, district))
+        self.conn.commit()
+        await ctx.send(f"✅ **Stimulus Sent!** ${amount} has been distributed to all residents of **{district}**.")    
+        
     @commands.command()
     @commands.has_role("RP Admin")
     async def force_district(self, ctx, user: discord.Member, district: str):
