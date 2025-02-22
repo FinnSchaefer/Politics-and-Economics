@@ -370,15 +370,13 @@ class Politics(commands.Cog):
             # Determine the winner
             winner_id = max(vote_counts, key=vote_counts.get)
             await self.assign_senator(ctx, winner_id, district)
-
             winner = ctx.guild.get_member(winner_id)
-            results.append(f"📢 The election for Senator of {district} has ended! Congratulations to {winner.mention}!")
 
-        embed = discord.Embed(
-            title="Election Results",
-            description="\n\n".join(results),
-            color=discord.Color.green()
-        )
+            embed = discord.Embed(
+                title="Election Results",
+                description=f"🎉 **{winner.display_name}** has been elected as Senator of **{district}**!",
+                color=discord.Color.green()
+            )
         await ctx.send(embed=embed)
 
     async def assign_senator(self, ctx, user_id, district):
@@ -448,7 +446,7 @@ class Politics(commands.Cog):
             return
         today = datetime.datetime.now(datetime.timezone.utc).weekday()
         if today != 6 or today != 0:
-            await ctx.send("⚠️ Bill voting can only take place on Sundays.")
+            await ctx.send("⚠️ Bill voting can only take place on Sundays and Mondays.")
             return
         # Check if the voter is a Senator
         self.c.execute("SELECT senator FROM users WHERE user_id = ?", (voter_id,))
@@ -460,7 +458,6 @@ class Politics(commands.Cog):
         if vote != "aye" and vote != "nay":
             await ctx.send(f"⚠️ Invalid vote `{vote}`. Use 'aye' or 'nay'.")
             return
-
 
         if vote.lower() == "aye":
             self.c.execute("UPDATE bills SET votes = votes + 1 WHERE bill_number = ?", (bill_number,))
