@@ -191,6 +191,7 @@ class Politics(commands.Cog):
         if chancellor_role:
             await member.remove_roles(chancellor_role)
 
+        print("Made here")
         # Step 2: Reset senator and chancellor status in the database
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
         self.conn.commit()
