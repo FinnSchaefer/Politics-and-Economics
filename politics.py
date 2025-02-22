@@ -28,7 +28,7 @@ class Politics(commands.Cog):
             description TEXT,
             link TEXT,
             proposed_date TEXT,
-            votes TEXT,
+            votes INTEGER DEFAULT 0,
             passed INTEGER DEFAULT 0,
             senate_number INTEGER DEFAULT 0
         )
@@ -440,14 +440,14 @@ class Politics(commands.Cog):
 
     @commands.command()
     @commands.has_role("Senator")
-    async def vote_bill(self, ctx, *, votes: str):
+    async def vote_bill(self, ctx, bill_number: int, vote: str):
         """Allows Senators to vote on multiple bills at once."""
         voter_id = ctx.author.id
         if ctx.channel.id != 1341231889557487739:
             await ctx.send("⚠️ Bill voting can only take place in the designated voting channel.")
             return
         today = datetime.datetime.now(datetime.timezone.utc).weekday()
-        if today != 6:
+        if today != 6 or today != 0:
             await ctx.send("⚠️ Bill voting can only take place on Sundays.")
             return
         # Check if the voter is a Senator
@@ -457,59 +457,18 @@ class Politics(commands.Cog):
             await ctx.send(f"{ctx.author.mention}, only Senators can vote on bills.")
             return
 
-        vote_entries = votes.split(", ")
-        vote_dict = {}
+        if vote != "aye" and vote != "nay":
+            await ctx.send(f"⚠️ Invalid vote `{vote}`. Use 'aye' or 'nay'.")
+            return
 
-        # Parse vote input
-        for entry in vote_entries:
-            parts = entry.split(" ")
-            if len(parts) != 2:
-                await ctx.send(f"⚠️ Invalid format in `{entry}`. Use `.vote_bill [Bill Number] aye/nay` format.")
-                return
 
-            bill_number, vote = parts
-            if vote.lower() not in ["aye", "nay"]:
-                await ctx.send(f"⚠️ Invalid vote `{vote}` in `{entry}`. Use 'aye' or 'nay'.")
-                return
+        if vote.lower() == "aye":
+            self.c.execute("UPDATE bills SET votes = votes + 1 WHERE bill_number = ?", (bill_number,))
+        else:
+            self.c.execute("UPDATE bills SET votes = votes + 0 WHERE bill_number = ?", (bill_number,))
 
-            try:
-                bill_number = int(bill_number)
-            except ValueError:
-                await ctx.send(f"⚠️ `{bill_number}` is not a valid bill number.")
-                return
-
-            vote_dict[bill_number] = vote.lower()
-
-        # Process each vote
-        for bill_number, vote in vote_dict.items():
-            self.c.execute("SELECT votes FROM bills WHERE bill_number = ?", (bill_number,))
-            row = self.c.fetchone()
-            if not row:
-                await ctx.send(f"⚠️ Bill #{bill_number} does not exist.")
-                continue
-
-            # Record vote
-            votes = json.loads(row[0])
-            votes[str(voter_id)] = vote
-            self.c.execute("UPDATE bills SET votes = ? WHERE bill_number = ?", (json.dumps(votes), bill_number))
-            self.conn.commit()
-
-            # Count votes to check if the bill passes
-            aye_count = sum(1 for v in votes.values() if v == "aye")
-            nay_count = sum(1 for v in votes.values() if v == "nay")
-            total_votes = aye_count + nay_count
-
-            self.c.execute("SELECT COUNT(*) FROM users WHERE senator = 1")  # Count total Senators
-            total_senators = self.c.fetchone()[0]
-
-            # If more than 50% of Senators voted "aye", pass the bill
-            if aye_count > (total_senators / 2):
-                self.c.execute("UPDATE bills SET passed = 1 WHERE bill_number = ?", (bill_number,))
-                self.conn.commit()
-                await ctx.send(f"✅ **Bill #{bill_number} has passed and is now law!**")
-
-        await ctx.send(f"✅ {ctx.author.mention}, your votes have been recorded!")
-
+        self.conn.commit()
+        await ctx.send(f"✅ {ctx.author.mention}, your votes have been recorded.")
 
 async def setup(bot):
     politics_cog = Politics(bot)
