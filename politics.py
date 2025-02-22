@@ -315,7 +315,7 @@ class Politics(commands.Cog):
 
         self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (candidate.id,))
         if not self.c.fetchone():
-            self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)"), (candidate.id, district)
+            self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)", (candidate.id, district))
             print("made it here7")
         else:
             self.c.execute("UPDATE elections SET user_id = ? WHERE district = ?", (candidate.id, district))
