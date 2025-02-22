@@ -306,9 +306,6 @@ class Politics(commands.Cog):
             # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-        print("made it here3")
-        self.c.execute("SELECT user_id, vote_senate FROM users WHERE district = ?", (district,))
-        rows = self.c.fetchall()
         print("made it here4")
 
         print("made it here5")
@@ -316,7 +313,7 @@ class Politics(commands.Cog):
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
         print("made it here6")
 
-        self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (voter_id,))
+        self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (candidate.id,))
         if not self.c.fetchone():
             self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)"), (candidate.id, district)
             print("made it here7")
