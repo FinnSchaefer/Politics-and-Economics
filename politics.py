@@ -307,7 +307,7 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
         print("made it here3")
-        self.c.execute("SELECT vote_senate FROM users WHERE district = ?", (district,))
+        self.c.execute("SELECT user_id, vote_senate FROM users WHERE district = ?", (district,))
         rows = self.c.fetchall()
         print("made it here4")
 
