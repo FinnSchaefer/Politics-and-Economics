@@ -282,7 +282,7 @@ class Politics(commands.Cog):
         
         district = row[0]
         # Check if the voter is in the specified district
-        if district != ctx.author.roles[0].name:
+        if not any(role.name == district for role in ctx.author.roles):
             embed = discord.Embed(
                 title="Voter Fraud!",
                 description=f"{ctx.author.mention}, you can only vote in your own district.",
