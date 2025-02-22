@@ -287,6 +287,10 @@ class Politics(commands.Cog):
             await ctx.send(f"{ctx.author.mention}, you have already voted in this election.")
             return
 
+        # Record the vote
+        self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
+        self.conn.commit()
+
         # Check if there is only one voter in the district
         self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
         voter_count = self.c.fetchone()[0]
@@ -299,10 +303,6 @@ class Politics(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
-          
-            # Record the vote
-        self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
-        self.conn.commit()
 
         self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (voter_id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
