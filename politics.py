@@ -321,8 +321,10 @@ class Politics(commands.Cog):
         self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (voter_id,))
         if not self.c.fetchone():
             self.c.execute("INSERT INTO elections (user_id, district, votes) VALUES (?, ?, ?)", (voter_id, district, json.dumps(votes)))
+            print("made it here7")
         else:
             self.c.execute("UPDATE elections SET votes = ? WHERE user_id = ?", (json.dumps(votes), voter_id))
+            print("made it here8")
         self.conn.commit()
 
         embed = discord.Embed(
