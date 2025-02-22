@@ -302,21 +302,21 @@ class Politics(commands.Cog):
             )
             await ctx.send(embed=embed)
             return
-
-        print("made it here3")
-  
+          
             # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-
+        print("made it here3")
         self.c.execute("SELECT vote_senate FROM users WHERE district = ?", (district,))
         rows = self.c.fetchall()
+        print("made it here4")
+
         votes = {str(row[0]): row[1] for row in rows}
         votes[str(voter_id)] = candidate.id
-        print("made it here")
+        print("made it here5")
         self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (candidate.id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
-        print("made it here")
+        print("made it here6")
         if not self.c.fetchone():
             self.c.execute("INSERT INTO elections (district, votes) VALUES (?, ?)", (district, json.dumps({})))
         else:
