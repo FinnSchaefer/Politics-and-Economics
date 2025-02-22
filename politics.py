@@ -305,7 +305,7 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (voter_id, voter_id))
+        self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (1, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
 
         self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (candidate.id,))
