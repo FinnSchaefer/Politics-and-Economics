@@ -39,7 +39,7 @@ class Politics(commands.Cog):
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS elections (
             user_id INTEGER PRIMARY KEY,
-            district TEXT,
+            district TEXT
         )
         """)
         self.conn.commit()
