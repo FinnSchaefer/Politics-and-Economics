@@ -4,6 +4,7 @@ import json
 import asyncio
 import datetime
 from discord.ext import commands, tasks
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 OFFICIAL_DISTRICTS = [
     "Corinthia", "Vordane", "Drakenshire", "Eldoria", "Caelmont"
@@ -42,7 +43,7 @@ class Politics(commands.Cog):
         )
         """)
         self.conn.commit()
-
+    
     @commands.command()
     async def join(self, ctx, district: str):
         """Allows users to join a district and ensures they have a user profile in the database."""
@@ -178,7 +179,7 @@ class Politics(commands.Cog):
         await ctx.send(f"📢 **Current Laws:**\n\n{law_list}")
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
+    @commands.has_role("RP Admin")
     async def start_elections(self, ctx):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
         # Step 1: Remove Senator and Chancellor roles from all members
@@ -220,8 +221,6 @@ class Politics(commands.Cog):
             color=discord.Color.red()
         )
         await ctx.send(embed=embed)
-        await asyncio.sleep(86400)
-        await self.start_chancellor_election(ctx)
 
     async def start_chancellor_election(self, ctx):
         """Starts the Chancellor election 24 hours after Senate elections end."""
@@ -425,24 +424,22 @@ class Politics(commands.Cog):
         
         await ctx.send(f"✅ Tax rates updated!\n🏢 Corporate Tax: **{corporate_rate * 100}%**\n💼 Trade Tax: **{trade_rate * 100}%**")
 
-    @tasks.loop(hours=24)
     async def vote_bills(self):
         """Automatically announces voting every Sunday for all proposed bills of the current week."""
-        today = datetime.datetime.now(datetime.timezone.utc).weekday()
-        if today.weekday() == 6:  # Sunday
-            self.c.execute("SELECT bill_number, bill_name, description, link FROM bills WHERE proposed_date >= ?", 
-                           ((today - datetime.timedelta(days=today.weekday())).strftime("%Y-%m-%d"),))
-            bills = self.c.fetchall()
+        today = datetime.datetime.now(datetime.timezone.utc)
+        self.c.execute("SELECT bill_number, bill_name, description, link FROM bills WHERE proposed_date >= ?", 
+                    ((today - datetime.timedelta(days=today.weekday())).strftime("%Y-%m-%d"),))
+        bills = self.c.fetchall()
 
-            if not bills:
-                return  # No bills proposed this week
+        if not bills:
+            return  # No bills proposed this week
 
-            bill_list = "\n".join([f"🗳️ **#{bill[0]} {bill[1]}**\n📜 {bill[2]}\n🔗 [Bill Document]({bill[3]})" for bill in bills])
+        bill_list = "\n".join([f"🗳️ **#{bill[0]} {bill[1]}**\n📜 {bill[2]}\n🔗 [Bill Document]({bill[3]})" for bill in bills])
 
-            channel = self.bot.get_channel(1341231889557487739)  # Replace with actual voting channel ID
-            if channel:
-                await channel.send(f"📢 **Senators, voting is now open for the following bills!**\n\n{bill_list}\n\n"
-                                   f"Use `.vote_bill [Bill Number] aye/nay, [Bill Number] aye/nay, ...` to cast your votes.")
+        channel = self.bot.get_channel(1341231889557487739)  # Replace with actual voting channel ID
+        if channel:
+            await channel.send(f"📢 **Senators, voting is now open for the following bills!**\n\n{bill_list}\n\n"
+                            f"Use `.vote_bill [Bill Number] aye/nay, [Bill Number] aye/nay, ...` to cast your votes.")
 
     @commands.command()
     @commands.has_role("Senator")
@@ -518,4 +515,11 @@ class Politics(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(Politics(bot))
+    politics_cog = Politics(bot)
+    schedy = AsyncIOScheduler()
+    if not schedy.running:
+        schedy.add_job(politics_cog.start_elections, "cron", day_of_week='tues', hour=13, minute=0)  # 12pm EST (5pm UTC)
+        schedy.add_job(politics_cog.start_chancellor_election, "cron", day_of_week='wed', hour=13, minute=0)  # 12pm EST (5pm UTC)
+        schedy.add_job(politics_cog.vote_bills, "cron", day_of_week='sun', hour=13, minute=0)  # 12pm EST (5pm UTC)
+        schedy.start()
+    await bot.add_cog(politics_cog)
