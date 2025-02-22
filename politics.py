@@ -185,6 +185,7 @@ class Politics(commands.Cog):
         # Step 1: Remove Senator and Chancellor roles from all members
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
+        print("Made it here")
         if senator_role:
             for member in senator_role.members:
                 await member.remove_roles(senator_role)
