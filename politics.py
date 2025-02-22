@@ -309,8 +309,10 @@ class Politics(commands.Cog):
         rows = self.c.fetchall()
         votes = {str(row[0]): row[1] for row in rows}
         votes[str(voter_id)] = candidate.id
+        print("made it here")
         self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (candidate.id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
+        print("made it here")
         if not self.c.fetchone():
             self.c.execute("INSERT INTO elections (district, votes) VALUES (?, ?)", (district, json.dumps({})))
         else:
