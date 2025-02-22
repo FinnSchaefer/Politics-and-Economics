@@ -38,10 +38,8 @@ class Politics(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS elections (
-            district TEXT PRIMARY KEY,
-            voter TEXT,
-            vote_senate TEXT,
-            vote_chancellor TEXT
+            user_id INTEGER PRIMARY KEY,
+            district TEXT,
         )
         """)
         self.conn.commit()
@@ -191,21 +189,15 @@ class Politics(commands.Cog):
             for member in senator_role.members:
                 await member.remove_roles(senator_role)
         if chancellor_role:
-            for member in chancellor_role.members:
-                await member.remove_roles(chancellor_role)
+            await member.remove_roles(chancellor_role)
 
-        # Step 2: Reset senator status in the database
-        self.c.execute("UPDATE users SET senator = 0")
-        self.c.execute("UPDATE users SET chancellor = 0")
-        self.conn.commit()
-
-        # Step 3: Clear election data
-        self.c.execute("DELETE FROM elections")
+        # Step 2: Reset senator and chancellor status in the database
+        self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
         self.conn.commit()
 
         await ctx.send("@everyone All previous election data has been cleared. Starting new elections...")
 
-        # Step 4: Start new elections
+        # Step 3: Start new elections
         for district in OFFICIAL_DISTRICTS:
             self.c.execute("SELECT user_id FROM users WHERE district = ?", (district,))
             voters = [row[0] for row in self.c.fetchall()]
@@ -213,20 +205,14 @@ class Politics(commands.Cog):
             if not voters:
                 continue
 
-            self.c.execute("INSERT INTO elections (district, voter, vote_senate, vote_chancellor) VALUES (?, ?, ?, ?)",
-                (district, json.dumps([]), json.dumps([]), json.dumps([])))
-            self.conn.commit()
-
-        embed = discord.Embed(
-            title="Elections have begun!",
-            description="Use `.vote_senator [district] @user` to vote for your district's senator.",
+            embed = discord.Embed(
+            title=f"Elections have begun in {district}!",
+            description=f"Use `.vote_senator {district} @user` to vote for your district's senator.",
             color=discord.Color.blue()
-        )
-        for district in OFFICIAL_DISTRICTS:
-            embed.add_field(name=f"{district} Election", value=f"Vote for your senator in {district}.", inline=False)
-        
-        await ctx.send(embed=embed)
-        # Step 5: Schedule Chancellor election after 24 hours
+            )
+            await ctx.send(embed=embed)
+
+        # Step 4: Schedule Chancellor election after 24 hours
         embed = discord.Embed(
             description="📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.",
             color=discord.Color.red()
@@ -244,15 +230,13 @@ class Politics(commands.Cog):
             await ctx.send("⚠️ Not enough senators to hold a Chancellor election.")
             return
 
-        self.c.execute("DELETE FROM elections WHERE district = 'Chancellor'")
-        self.c.execute("INSERT INTO elections (district, candidates, votes) VALUES (?, ?, ?)", 
-                    ('Chancellor', json.dumps(senators), json.dumps({})))
+        self.c.execute("UPDATE users SET vote_chancellor = 0 WHERE senator = 1")
         self.conn.commit()
 
         channel = self.bot.get_channel(1341231889557487739)
         if channel:
             await channel.send(f"📢 **Chancellor Election Started!** Only Senators can vote.\n"
-                            f"Use `.vote_chancellor @user` to cast your vote.")
+                       f"Use `.vote_chancellor @user` to cast your vote.")
 
     @commands.command()
     async def vote_chancellor(self, ctx, candidate: discord.Member):
@@ -295,20 +279,39 @@ class Politics(commands.Cog):
             return
 
         # Check if the voter has already voted
-        self.c.execute("SELECT vote_senate FROM elections WHERE district = ?", (district,))
+        self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
-        if not row:
-            await ctx.send(f"⚠️ No election is currently running in {district}.")
-            return
-
-        votes = json.loads(row[0])
-        if str(voter_id) in votes:
+        if row and row[0] == 1:
             await ctx.send(f"{ctx.author.mention}, you have already voted in this election.")
             return
 
-        # Record the vote
+        # Check if there is only one voter in the district
+        self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
+        voter_count = self.c.fetchone()[0]
+        if voter_count == 1:
+            await self.assign_senator(ctx, candidate.id, district)
+            embed = discord.Embed(
+                title="Senator Election Result",
+                description=f"📢 The election for Senator of {district} has ended! Congratulations to {candidate.mention}!",
+                color=discord.Color.green()
+            )
+            await ctx.send(embed=embed)
+            return
+
+            # Record the vote
+        self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
+        self.conn.commit()
+
+        self.c.execute("SELECT vote_senate FROM users WHERE district = ?", (district,))
+        rows = self.c.fetchall()
+        votes = {str(row[0]): row[1] for row in rows}
         votes[str(voter_id)] = candidate.id
-        self.c.execute("UPDATE elections SET vote_senate = ? WHERE district = ?", (json.dumps(votes), district))
+        self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (candidate.id, voter_id))
+        self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
+        if not self.c.fetchone():
+            self.c.execute("INSERT INTO elections (district, votes) VALUES (?, ?)", (district, json.dumps({})))
+        else:
+            self.c.execute("UPDATE elections SET votes = ? WHERE district = ?", (json.dumps(votes), district))
         self.conn.commit()
 
         embed = discord.Embed(
@@ -326,40 +329,38 @@ class Politics(commands.Cog):
 
     async def end_senator_election(self, ctx, district):
         """Ends the senator election for a district and announces the winner."""
-        self.c.execute("SELECT vote_senate FROM elections WHERE district = ?", (district,))
-        row = self.c.fetchone()
-        if not row:
-            await ctx.send(f"⚠️ No election is currently running in {district}.")
-            return
+        results = []
 
-        votes = json.loads(row[0])
-        if not votes:
-            await ctx.send(f"⚠️ No votes have been cast in the {district} election.")
-            return
+        for district in OFFICIAL_DISTRICTS:
+            self.c.execute("SELECT votes FROM elections WHERE district = ?", (district,))
+            row = self.c.fetchone()
+            if not row or not row[0]:
+                results.append(f"⚠️ No votes have been cast in the {district} election.")
+                continue
 
-        # Count votes
-        vote_counts = {}
-        for candidate_id in votes.values():
-            if candidate_id in vote_counts:
-                vote_counts[candidate_id] += 1
-            else:
-                vote_counts[candidate_id] = 1
+            votes = json.loads(row[0])
 
-        # Determine the winner
-        winner_id = max(vote_counts, key=vote_counts.get)
-        await self.assign_senator(ctx, winner_id, district)
+            # Count votes
+            vote_counts = {}
+            for candidate_id in votes.values():
+                if candidate_id in vote_counts:
+                    vote_counts[candidate_id] += 1
+                else:
+                    vote_counts[candidate_id] = 1
 
-        winner = ctx.guild.get_member(winner_id)
+            # Determine the winner
+            winner_id = max(vote_counts, key=vote_counts.get)
+            await self.assign_senator(ctx, winner_id, district)
+
+            winner = ctx.guild.get_member(winner_id)
+            results.append(f"📢 The election for Senator of {district} has ended! Congratulations to {winner.mention}!")
+
         embed = discord.Embed(
-            title=f"Election Results for {district}",
-            description=f"📢 The election for Senator of {district} has ended! Congratulations to {winner.mention}!",
+            title="Election Results",
+            description="\n\n".join(results),
             color=discord.Color.green()
         )
         await ctx.send(embed=embed)
-
-        # Clean up election data
-        self.c.execute("DELETE FROM elections WHERE district = ?", (district,))
-        self.conn.commit()
 
     async def assign_senator(self, ctx, user_id, district):
         """Assigns the senator role to the election winner and ensures the database schema is correct."""
