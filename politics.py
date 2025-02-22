@@ -515,7 +515,7 @@ async def setup(bot):
     politics_cog = Politics(bot)
     schedy = AsyncIOScheduler()
     if not schedy.running:
-        schedy.add_job(politics_cog.start_elections, "cron", day_of_week='tues', hour=13, minute=0)  # 12pm EST (5pm UTC)
+        schedy.add_job(politics_cog.start_elections, "cron", day_of_week='tue', hour=13, minute=0)  # 12pm EST (5pm UTC)
         schedy.add_job(politics_cog.start_chancellor_election, "cron", day_of_week='wed', hour=13, minute=0)  # 12pm EST (5pm UTC)
         schedy.add_job(politics_cog.vote_bills, "cron", day_of_week='sun', hour=13, minute=0)  # 12pm EST (5pm UTC)
         schedy.start()
