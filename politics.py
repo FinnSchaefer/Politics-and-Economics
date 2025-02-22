@@ -207,7 +207,7 @@ class Politics(commands.Cog):
 
             embed = discord.Embed(
             title=f"Elections have begun in {district}!",
-            description=f"Use `.vote_senator {district} @user` to vote for your district's senator.",
+            description=f"Use `.vote_senator @user` to vote for your district's senator.",
             color=discord.Color.blue()
             )
             await ctx.send(embed=embed)
