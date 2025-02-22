@@ -277,15 +277,24 @@ class Politics(commands.Cog):
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if not row or row[0] != district:
-            await ctx.send(f"{ctx.author.mention}, you can only vote in your own district.")
+            embed = discord.Embed(
+                title="Voter Fruad!",
+                description=f"{ctx.author.mention}, you can only vote in your own district.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         # Check if the voter has already voted
         self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
-        print(f"vote_senate value: {row[0]}")
         if row and row[0] == 1:
-            await ctx.send(f"{ctx.author.mention}, you have already voted in this election.")
+            embed = discord.Embed(
+                title="Vote Already Cast",
+                description=f"{ctx.author.mention}, you have already voted in this election.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         # Record the vote
