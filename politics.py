@@ -265,10 +265,12 @@ class Politics(commands.Cog):
 
 
     @commands.command()
-    async def vote_senator(self, ctx, district: str, candidate: discord.Member):
+    async def vote_senator(self, ctx, candidate: discord.Member):
         """Allows users to vote for a senator in their district."""
         voter_id = ctx.author.id
-
+        # Get the message author's district from the users table
+        self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
+        district = self.c.fetchone()[0]
         # Check if the voter is in the specified district
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
