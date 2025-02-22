@@ -317,10 +317,12 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (candidate.id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
         print("made it here6")
+
+        self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (voter_id,))
         if not self.c.fetchone():
-            self.c.execute("INSERT INTO elections (district, votes) VALUES (?, ?)", (district, json.dumps({})))
+            self.c.execute("INSERT INTO elections (user_id, district, votes) VALUES (?, ?, ?)", (voter_id, district, json.dumps(votes)))
         else:
-            self.c.execute("UPDATE elections SET votes = ? WHERE district = ?", (json.dumps(votes), district))
+            self.c.execute("UPDATE elections SET votes = ? WHERE user_id = ?", (json.dumps(votes), voter_id))
         self.conn.commit()
 
         embed = discord.Embed(
@@ -331,9 +333,11 @@ class Politics(commands.Cog):
         await ctx.send(embed=embed)
 
         # Check if all voters have voted
-        self.c.execute("SELECT user_id FROM users WHERE district = ?", (district,))
-        voters = [row[0] for row in self.c.fetchall()]
-        if len(votes) == len(voters):
+        self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
+        total_voters = self.c.fetchone()[0]
+        self.c.execute("SELECT COUNT(*) FROM users WHERE district = ? AND vote_senate != 0", (district,))
+        total_votes = self.c.fetchone()[0]
+        if total_votes == total_voters:
             await self.end_senator_election(ctx, district)
 
     async def end_senator_election(self, ctx, district):
