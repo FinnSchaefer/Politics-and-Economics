@@ -193,7 +193,6 @@ class Politics(commands.Cog):
             for member in chancellor_role.members:
                 await member.remove_roles(chancellor_role)
 
-        print("Made here")
         # Step 2: Reset senator and chancellor status in the database
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
         self.conn.commit()
@@ -276,10 +275,13 @@ class Politics(commands.Cog):
 
         # Check if the voter is in the specified district
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
+        print("made it here")
         row = self.c.fetchone()
         if not row or row[0] != district:
             await ctx.send(f"{ctx.author.mention}, you can only vote in your own district.")
             return
+       
+        print("made it here")
 
         # Check if the voter has already voted
         self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
@@ -301,6 +303,8 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+        print("made it here3")
+  
             # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
