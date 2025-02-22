@@ -19,9 +19,6 @@ class Politics(commands.Cog):
         self.c = self.conn.cursor()
         self.setup_politics()
 
-        # Start background tasks
-        self.vote_bills.start()
-
     def setup_politics(self):
         """Create required database tables if they don't exist."""
         self.c.execute("""
