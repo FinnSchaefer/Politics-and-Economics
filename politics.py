@@ -275,13 +275,10 @@ class Politics(commands.Cog):
 
         # Check if the voter is in the specified district
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
-        print("made it here")
         row = self.c.fetchone()
         if not row or row[0] != district:
             await ctx.send(f"{ctx.author.mention}, you can only vote in your own district.")
             return
-       
-        print("made it here")
 
         # Check if the voter has already voted
         self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
@@ -306,22 +303,16 @@ class Politics(commands.Cog):
             # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-        print("made it here4")
 
-        print("made it here5")
         self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (voter_id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
-        print("made it here6")
 
         self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (candidate.id,))
         if not self.c.fetchone():
             self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)", (candidate.id, district))
-            print("made it here7")
         else:
             self.c.execute("UPDATE elections SET user_id = ? WHERE district = ?", (candidate.id, district))
-            print("made it here8")
         self.conn.commit()
-        print("made it here9")
         embed = discord.Embed(
             title="Vote Recorded",
             description=f"{ctx.author.mention} has voted for {candidate.mention} as Senator of {district}!",
@@ -336,6 +327,18 @@ class Politics(commands.Cog):
         total_votes = self.c.fetchone()[0]
         if total_votes == total_voters:
             await self.end_senator_election(ctx, district)
+            
+    @commands.command()
+    async def print_elections(self, ctx):
+        """Prints the elections table."""
+        self.c.execute("SELECT * FROM elections")
+        rows = self.c.fetchall()
+        if not rows:
+            await ctx.send("📜 The elections table is currently empty.")
+            return
+
+        election_list = "\n".join([f"User ID: {row[0]}, District: {row[1]}" for row in rows])
+        await ctx.send(f"📢 **Elections Table:**\n\n{election_list}")
 
     async def end_senator_election(self, ctx, district):
         """Ends the senator election for a district and announces the winner."""
