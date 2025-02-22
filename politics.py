@@ -270,13 +270,21 @@ class Politics(commands.Cog):
         voter_id = ctx.author.id
         # Get the message author's district from the users table
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
-        district = self.c.fetchone()[0]
-        # Check if the voter is in the specified district
-        self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
-        if not row or row[0] != district:
+        if not row:
             embed = discord.Embed(
-                title="Voter Fruad!",
+                title="Voter Fraud!",
+                description=f"{ctx.author.mention}, you are not registered in any district.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+        
+        district = row[0]
+        # Check if the voter is in the specified district
+        if district != ctx.author.roles[0].name:
+            embed = discord.Embed(
+                title="Voter Fraud!",
                 description=f"{ctx.author.mention}, you can only vote in your own district.",
                 color=discord.Color.red()
             )
