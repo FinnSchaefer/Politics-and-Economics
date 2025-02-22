@@ -17,7 +17,6 @@ class Politics(commands.Cog):
         self.conn = sqlite3.connect("game.db", check_same_thread=False)
         self.c = self.conn.cursor()
         self.setup_politics()
-        self.i = 0
 
         # Start background tasks
         self.vote_bills.start()
@@ -195,6 +194,7 @@ class Politics(commands.Cog):
 
         # Step 2: Reset senator and chancellor status in the database
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
+        self.c.execute("DELETE FROM elections")
         self.conn.commit()
 
         await ctx.send("@everyone All previous election data has been cleared. Starting new elections...")
