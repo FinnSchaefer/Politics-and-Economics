@@ -282,8 +282,8 @@ class Politics(commands.Cog):
 
         # Check if the voter has already voted
         self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
-        print(f"vote_senate value: {row[0]}")
         row = self.c.fetchone()
+        print(f"vote_senate value: {row[0]}")
         if row and row[0] == 1:
             await ctx.send(f"{ctx.author.mention}, you have already voted in this election.")
             return
