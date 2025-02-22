@@ -311,22 +311,20 @@ class Politics(commands.Cog):
         rows = self.c.fetchall()
         print("made it here4")
 
-        votes = {str(row[0]): row[1] for row in rows}
-        votes[str(voter_id)] = candidate.id
         print("made it here5")
-        self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (candidate.id, voter_id))
+        self.c.execute("UPDATE users SET vote_senate = ? WHERE user_id = ?", (voter_id, voter_id))
         self.c.execute("SELECT district FROM elections WHERE district = ?", (district,))
         print("made it here6")
 
         self.c.execute("SELECT user_id FROM elections WHERE user_id = ?", (voter_id,))
         if not self.c.fetchone():
-            self.c.execute("INSERT INTO elections (user_id, district, votes) VALUES (?, ?, ?)", (voter_id, district, json.dumps(votes)))
+            self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)"), (candidate.id, district)
             print("made it here7")
         else:
-            self.c.execute("UPDATE elections SET votes = ? WHERE user_id = ?", (json.dumps(votes), voter_id))
+            self.c.execute("UPDATE elections SET user_id = ? WHERE district = ?", (candidate.id, district))
             print("made it here8")
         self.conn.commit()
-
+        print("made it here9")
         embed = discord.Embed(
             title="Vote Recorded",
             description=f"{ctx.author.mention} has voted for {candidate.mention} as Senator of {district}!",
