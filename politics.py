@@ -251,7 +251,7 @@ class Politics(commands.Cog):
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
         ctx = self.bot.get_channel(1342194754921828465)
-        senate_vote_channel = self.bot.get_channel(1341231889557487739)
+        senate_vote_channel = self.bot.get_channel(1343032313763725322)
         
         if senator_role:
             for member in senator_role.members:
