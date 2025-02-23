@@ -349,6 +349,8 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+        self.c.execute("UPDATE users SET vote_chancellor = 1 WHERE user_id = ?", (voter_id,))
+        self.conn.commit()
         self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE voter = ?", (candidate.id, voter_id))
         self.conn.commit()
 
