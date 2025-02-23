@@ -559,8 +559,6 @@ async def setup(bot):
     if not schedy.running:
         schedy.add_job(politics_cog.start_elections, "cron", day_of_week='tue', hour=13, minute=0, args=[None], week="2-52/2")  # 12pm EST (5pm UTC)
         print("🔹 Scheduled Senate elections for every other Tuesday at 12pm EST.")
-        schedy.add_job(politics_cog.start_chancellor_election, "cron", day_of_week='wed', hour=13, minute=0, args=[None], week="2-52/2") # 12pm EST (5pm UTC)
-        print("🔹 Scheduled Chancellor election for every other Wednesday at 12pm EST.")
         schedy.add_job(politics_cog.vote_bills, "cron", day_of_week='sun', hour=13, minute=0, week="2-52/2")  # 12pm EST (5pm UTC)
         print("🔹 Scheduled bill voting for every other Sunday at 12pm EST.")
         schedy.start()
