@@ -338,6 +338,7 @@ class Politics(commands.Cog):
             await ctx.send("⚠️ A Chancellor has already been elected.")
             return
 
+        print("made it here1")
         self.c.execute("SELECT chancellor_vote FROM elections WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if row and row[0] != 0:
@@ -349,6 +350,8 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+
+        print("made it2")
         self.c.execute("UPDATE users SET vote_chancellor = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
         self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE voter = ?", (candidate.id, voter_id))
