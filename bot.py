@@ -67,6 +67,13 @@ async def clear(ctx):
     """Clears all messages in the current channel."""
     await ctx.channel.purge()
 
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def rolestrip(ctx):
+    """Removes all roles from all users in the server."""
+    for member in ctx.guild.members:
+        await member.edit(roles=[])
+    await ctx.send("Roles have been stripped from all users.")
 
 @bot.command(name="help")
 async def help(ctx):
