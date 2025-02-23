@@ -319,6 +319,8 @@ class Politics(commands.Cog):
             return
 
         voter_id = ctx.author.id
+        elections_announcements = self.bot.get_channel(1342194754921828465)
+        
         self.c.execute("SELECT senator FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if not row or row[0] == 0:
@@ -349,7 +351,12 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE user_id = ?", (candidate.id, voter_id))
         self.conn.commit()
 
-        await ctx.send(f"{ctx.author.mention} has voted for {candidate.mention} as Chancellor!")
+        embed = discord.Embed(
+            title="Chancellor Vote Recorded",
+            description=f"{ctx.author.mention} has voted for {candidate.mention} as Chancellor!",
+            color=discord.Color.green()
+        )
+        await elections_announcements.send(embed=embed)
 
         self.c.execute("SELECT COUNT(chancellor_vote) FROM elections WHERE chancellor_vote != 0")
         total_votes = self.c.fetchone()[0]
@@ -367,7 +374,7 @@ class Politics(commands.Cog):
                     description=f"📢 The Chancellor election has ended! Congratulations to {winner.mention}!",
                     color=discord.Color.green()
                 )
-                await ctx.send(embed=embed)
+                await elections_announcements.send(embed=embed)
             else:
                 await ctx.send("⚠️ Chancellor role or winner not found.")
 
