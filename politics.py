@@ -399,7 +399,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you are not registered in any district.",
             color=discord.Color.red()
             )
-            await channel.send(embed=embed)
+            await ctx.send(embed=embed)
             return
         
         self.c.execute("SELECT user_id FROM users WHERE district = ?", (row[0],))
@@ -413,7 +413,7 @@ class Politics(commands.Cog):
                 description=f"{ctx.author.mention}, the election is over as {ctx.guild.get_member(user[0]).mention} is already a Senator of {row[0]}.",
                 color=discord.Color.red()
             )
-                await channel.send(embed=embed)
+                await ctx.send(embed=embed)
                 return
 
         district = row[0]
