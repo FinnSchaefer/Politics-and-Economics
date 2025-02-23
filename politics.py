@@ -389,9 +389,9 @@ class Politics(commands.Cog):
         # Check if a candidate has a majority of the votes or if everyone has voted
         self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
         total_voters = self.c.fetchone()[0]
-        self.c.execute("SELECT SUM(votes) FROM elections WHERE district = ?", (district,))
+        self.c.execute("SELECT COUNT(user_id) FROM elections WHERE district = ?", (district,))
         total_votes = self.c.fetchone()[0]
-        self.c.execute("SELECT user_id, votes FROM elections WHERE district = ? ORDER BY votes DESC", (district,))
+        self.c.execute("SELECT user_id, COUNT(user_id) as vote_count FROM elections WHERE district = ? GROUP BY user_id ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
 
         if results and (results[0][1] > total_voters / 2 or total_votes == total_voters):
