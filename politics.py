@@ -265,7 +265,7 @@ class Politics(commands.Cog):
         self.c.execute("DELETE FROM elections")
         self.conn.commit()
 
-        await ctx.send("@everyone All previous election data has been cleared. Starting new elections...")
+        await ctx.send("All previous election data has been cleared. Starting new elections...")
 
         # Step 3: Start new elections
         for district in OFFICIAL_DISTRICTS:
@@ -396,13 +396,25 @@ class Politics(commands.Cog):
             await channel.send(embed=embed)
             return
         
+        self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
+        district_row = self.c.fetchone()
+        if not district_row:
+            embed = discord.Embed(
+                title="Voter Fraud!",
+                description=f"{ctx.author.mention}, you are not registered in any district.",
+                color=discord.Color.red()
+            )
+            await channel.send(embed=embed)
+            return
+
+        district = district_row[0]
         self.c.execute("SELECT user_id FROM users WHERE district = ? AND senator = 1", (district,))
         row = self.c.fetchone()
         if row:
             embed = discord.Embed(
-            title="Election Over",
-            description=f"{ctx.author.mention}, the election is over as there is already a Senator in {district}.",
-            color=discord.Color.green()
+                title="Election Over",
+                description=f"{ctx.author.mention}, the election is over as there is already a Senator in {district}.",
+                color=discord.Color.green()
             )
             await channel.send(embed=embed)
             return
