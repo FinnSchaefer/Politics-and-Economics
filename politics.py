@@ -36,7 +36,7 @@ class Politics(commands.Cog):
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS elections (
             voter INTEGER PRIMARY KEY DEFAULT 0,
-            candidate INTEGER PRIMARY KEY,
+            candidate INTEGER DEFAULT 0,
             district TEXT,
             chancellor_vote INTEGER DEFAULT 0
         )
