@@ -414,13 +414,13 @@ class Politics(commands.Cog):
     @commands.command()
     async def print_elections(self, ctx):
         """Prints the elections table."""
-        self.c.execute("SELECT * FROM elections")
+        self.c.execute("SELECT user_id, district, chancellor_vote FROM elections")
         rows = self.c.fetchall()
         if not rows:
             await ctx.send("📜 The elections table is currently empty.")
             return
 
-        election_list = "\n".join([f"User ID: {row[0]}, District: {row[1]}" for row in rows])
+        election_list = "\n".join([f"User ID: {row[0]}, District: {row[1]}, Chancellor Vote: {row[2]}" for row in rows])
         await ctx.send(f"📢 **Elections Table:**\n\n{election_list}")
 
     async def assign_senator(self, ctx, user_id, district):
