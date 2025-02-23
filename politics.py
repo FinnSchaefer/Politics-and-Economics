@@ -339,13 +339,13 @@ class Politics(commands.Cog):
             return
 
         print("made it here1")
-        self.c.execute("SELECT chancellor_vote FROM elections WHERE user_id = ?", (voter_id,))
+        self.c.execute("SELECT vote_chancellor FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if row and row[0] != 0:
             embed = discord.Embed(
-                title="Voter Fraud!",
-                description=f"{ctx.author.mention}, you have already voted in this Chancellor election.",
-                color=discord.Color.red()
+            title="Voter Fraud!",
+            description=f"{ctx.author.mention}, you have already voted in this Chancellor election.",
+            color=discord.Color.red()
             )
             await ctx.send(embed=embed)
             return
