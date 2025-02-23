@@ -61,6 +61,13 @@ async def distribute_ubi():
     c.execute("UPDATE users SET balance = balance + 500")
     conn.commit()
 
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def clear(ctx):
+    """Clears all messages in the current channel."""
+    await ctx.channel.purge()
+
+
 @bot.command(name="help")
 async def help(ctx):
     """Displays a help message with all available commands."""
