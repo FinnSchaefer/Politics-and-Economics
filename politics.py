@@ -408,18 +408,7 @@ class Politics(commands.Cog):
                 color=discord.Color.red()
             )
                 await channel.send(embed=embed)
-            return
-        
-        self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
-        district_row = self.c.fetchone()
-        if not district_row:
-            embed = discord.Embed(
-                title="Voter Fraud!",
-                description=f"{ctx.author.mention}, you are not registered in any district.",
-                color=discord.Color.red()
-            )
-            await channel.send(embed=embed)
-            return
+                return
 
         district = row[0]
         # Check if the voter is in the specified district
