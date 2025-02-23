@@ -424,7 +424,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you can only vote in your own district.",
             color=discord.Color.red()
             )
-            await channel.send(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         # Check if the voter has already voted
@@ -436,7 +436,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you have already voted in this election.",
             color=discord.Color.red()
             )
-            await channel.send(embed=embed)
+            await ctx.send(embed=embed)
             return
 
         # Record the vote
