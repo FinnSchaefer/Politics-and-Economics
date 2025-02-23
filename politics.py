@@ -450,9 +450,9 @@ class Politics(commands.Cog):
         # Check if a candidate has a majority of the votes or if everyone has voted
         self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
         total_voters = self.c.fetchone()[0]
-        self.c.execute("SELECT COUNT(user_id) FROM elections WHERE district = ?", (district,))
+        self.c.execute("SELECT COUNT(candidate) FROM elections WHERE district = ?", (district,))
         total_votes = self.c.fetchone()[0]
-        self.c.execute("SELECT user_id, COUNT(user_id) as vote_count FROM elections WHERE district = ? GROUP BY user_id ORDER BY vote_count DESC", (district,))
+        self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
 
         if results and (results[0][1] > total_voters / 2 or total_votes == total_voters):
@@ -468,13 +468,13 @@ class Politics(commands.Cog):
     @commands.command()
     async def print_elections(self, ctx):
         """Prints the elections table."""
-        self.c.execute("SELECT user_id, district, chancellor_vote FROM elections")
+        self.c.execute("SELECT candidate, voter, district, chancellor_vote FROM elections")
         rows = self.c.fetchall()
         if not rows:
             await ctx.send("📜 The elections table is currently empty.")
             return
 
-        election_list = "\n".join([f"User ID: {row[0]}, District: {row[1]}, Chancellor Vote: {row[2]}" for row in rows])
+        election_list = "\n".join([f"Candidate ID: {row[0]}, Voter ID: {row[1]}, District: {row[2]}, Chancellor Vote: {row[3]}" for row in rows])
         await ctx.send(f"📢 **Elections Table:**\n\n{election_list}")
 
     async def assign_senator(self, ctx, user_id, district):
