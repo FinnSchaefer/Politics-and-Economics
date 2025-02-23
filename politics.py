@@ -250,6 +250,7 @@ class Politics(commands.Cog):
         # Step 1: Remove Senator and Chancellor roles from all members
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
+        ctx = self.bot.get_channel(1342194754921828465)
         
         if senator_role:
             for member in senator_role.members:
@@ -263,7 +264,6 @@ class Politics(commands.Cog):
         self.c.execute("DELETE FROM elections")
         self.conn.commit()
 
-        channel = self.bot.get_channel(1342194754921828465)
         await ctx.send("@everyone All previous election data has been cleared. Starting new elections...")
 
         # Step 3: Start new elections
