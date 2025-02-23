@@ -278,34 +278,17 @@ class Politics(commands.Cog):
 
             embed = discord.Embed(
             title=f"Elections have begun in {district}!",
-            description=f"Use `.vote_senator @user` to vote for your district's senator.",
+            description=f"Use `.vote_senator @user` to vote for your district's senator.\nYou can only vote once!",
             color=discord.Color.blue()
             )
             await ctx.send(embed=embed)
 
         # Step 4: Schedule Chancellor election after 24 hours
         embed = discord.Embed(
-            description="📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.",
+            description="📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.\nWhen you are ready to vote for Chancellor please do so with `.vote_chancellor @user`.",
             color=discord.Color.red()
         )
         await senate_vote_channel.send(embed=embed)
-
-    async def start_chancellor_election(self, ctx):
-        """Starts the Chancellor election 24 hours after Senate elections end."""
-        self.c.execute("SELECT user_id FROM users WHERE senator = 1")
-        senators = [row[0] for row in self.c.fetchall()]
-
-        if not senators or len(senators) < 2:
-            await ctx.send("⚠️ Not enough senators to hold a Chancellor election.")
-            return
-
-        self.c.execute("UPDATE users SET vote_chancellor = 0 WHERE senator = 1")
-        self.conn.commit()
-
-        channel = self.bot.get_channel(1343032313763725322)
-        if channel:
-            await channel.send(f"📢 **Chancellor Election Started!** Only Senators can vote.\n"
-                       f"Use `.vote_chancellor @user` to cast your vote.")
 
     @commands.command()
     async def vote_chancellor(self, ctx, candidate: discord.Member):
