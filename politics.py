@@ -199,7 +199,12 @@ class Politics(commands.Cog):
 
         today = datetime.datetime.now(datetime.timezone.utc).weekday()
         if today > 4:
-            await ctx.send(f"{ctx.author.mention}, bills can only be proposed Monday-Friday.")
+            embed = discord.Embed(
+                title="Bill Proposal",
+                description=f"{ctx.author.mention}, bills can only be proposed Monday-Friday.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         proposed_date = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
@@ -208,7 +213,12 @@ class Politics(commands.Cog):
         self.conn.commit()
 
         bill_number = self.c.lastrowid
-        await ctx.send(f"✅ **Bill Proposed!**\n📜 **Bill Name:** {bill_name}\n🔢 **Bill Number:** {bill_number}\n📝 **Description:** {description}\n🔗 [Google Doc]({link})")
+        embed = discord.Embed(
+            title="Bill Proposed",
+            description=f"📜 **Bill Name:** {bill_name}\n🔢 **Bill Number:** {bill_number}\n📝 **Description:** {description}\n🔗 [Google Doc]({link})",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def bills(self, ctx):
@@ -217,7 +227,12 @@ class Politics(commands.Cog):
         bills = self.c.fetchall()
 
         if not bills:
-            await ctx.send("📜 There are currently no proposed bills.")
+            embed = discord.Embed(
+                title="Proposed Bills",
+                description="📜 There are currently no proposed bills.",
+                color=discord.Color.blue()
+            )
+            await ctx.send(embed=embed)
             return
 
         bill_list = "\n\n".join([
@@ -225,7 +240,12 @@ class Politics(commands.Cog):
             for bill in bills
         ])
 
-        await ctx.send(f"📢 **Current Proposed Bills:**\n\n{bill_list}")
+        embed = discord.Embed(
+            title="Current Proposed Bills",
+            description=bill_list,
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def laws(self, ctx):
@@ -234,7 +254,12 @@ class Politics(commands.Cog):
         laws = self.c.fetchall()
 
         if not laws:
-            await ctx.send("📜 There are currently no passed laws.")
+            embed = discord.Embed(
+                title="Passed Laws",
+                description="📜 There are currently no passed laws.",
+                color=discord.Color.blue()
+            )
+            await ctx.send(embed=embed)
             return
 
         law_list = "\n\n".join([
@@ -242,7 +267,12 @@ class Politics(commands.Cog):
             for law in laws
         ])
 
-        await ctx.send(f"📢 **Current Laws:**\n\n{law_list}")
+        embed = discord.Embed(
+            title="Current Laws",
+            description=f"📢 **Current Laws:**\n\n{law_list}",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.has_role("RP Admin")
@@ -503,7 +533,12 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE tax_rate SET corporate_rate = ?, trade_rate = ?", (corporate_rate, trade_rate))
         self.conn.commit()
         
-        await ctx.send(f"✅ Tax rates updated!\n🏢 Corporate Tax: **{corporate_rate * 100}%**\n💼 Trade Tax: **{trade_rate * 100}%**")
+        embed = discord.Embed(
+            title="Tax Rates Updated",
+            description=f"✅ Tax rates updated!\n🏢 Corporate Tax: **{corporate_rate * 100}%**\n💼 Trade Tax: **{trade_rate * 100}%**",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
 
     async def vote_bills(self):
         """Automatically announces voting every Sunday for all proposed bills of the current week."""
@@ -519,8 +554,13 @@ class Politics(commands.Cog):
 
         channel = self.bot.get_channel(1341231889557487739)  # Replace with actual voting channel ID
         if channel:
-            await channel.send(f"📢 **Senators, voting is now open for the following bills!**\n\n{bill_list}\n\n"
-                            f"Use `.vote_bill [Bill Number] aye/nay, [Bill Number] aye/nay, ...` to cast your votes.")
+            embed = discord.Embed(
+                title="Weekly Bill Voting",
+                description=f"📢 **Senators, voting is now open for the following bills!**\n\n{bill_list}\n\n"
+                            f"Use `.vote_bill [Bill Number] aye/nay, [Bill Number] aye/nay, ...` to cast your votes.",
+                color=discord.Color.blue()
+            )
+            await channel.send(embed=embed)
 
     @commands.command()
     @commands.has_role("Senator")
@@ -532,7 +572,12 @@ class Politics(commands.Cog):
             return
         today = datetime.datetime.now(datetime.timezone.utc).weekday()
         if today != 6 or today != 0:
-            await ctx.send("⚠️ Bill voting can only take place on Sundays and Mondays.")
+            embed = discord.Embed(
+                title="Bill Voting",
+                description="Bill voting can only take place on Sundays and Mondays.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
         # Check if the voter is a Senator
         self.c.execute("SELECT senator FROM users WHERE user_id = ?", (voter_id,))
@@ -542,7 +587,7 @@ class Politics(commands.Cog):
             return
 
         if vote != "aye" and vote != "nay":
-            await ctx.send(f"⚠️ Invalid vote `{vote}`. Use 'aye' or 'nay'.")
+            await ctx.send(f"Invalid vote `{vote}`. Use 'aye' or 'nay'.")
             return
 
         if vote.lower() == "aye":
@@ -551,7 +596,15 @@ class Politics(commands.Cog):
             self.c.execute("UPDATE bills SET votes = votes + 0 WHERE bill_number = ?", (bill_number,))
 
         self.conn.commit()
-        await ctx.send(f"✅ {ctx.author.mention}, your votes have been recorded.")
+        self.c.execute("SELECT bill_name FROM bills WHERE bill_number = ?", (bill_number,))
+        bill_name = self.c.fetchone()[0]
+        
+        embed = discord.Embed(
+            title="Vote Recorded",
+            description=f"✅ {ctx.author.mention}, your vote on **{bill_name} (#{bill_number})** has been recorded.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     politics_cog = Politics(bot)
