@@ -335,7 +335,7 @@ class Politics(commands.Cog):
 
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
         if chancellor_role and any(member for member in ctx.guild.members if chancellor_role in member.roles):
-            await ctx.send("⚠️ A Chancellor election is already running.")
+            await ctx.send("⚠️ A Chancellor has already been elected.")
             return
 
         self.c.execute("SELECT chancellor_vote FROM elections WHERE user_id = ?", (voter_id,))
@@ -349,7 +349,7 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE user_id = ?", (candidate.id, voter_id))
+        self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE voter = ?", (candidate.id, voter_id))
         self.conn.commit()
 
         embed = discord.Embed(
