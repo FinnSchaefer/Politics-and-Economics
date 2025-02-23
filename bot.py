@@ -90,8 +90,9 @@ async def help(ctx):
         name="💰 **Economy Commands**",
         value=(
             "`balance` → Check your balance.\n"
-            "`government_balance` → Check the government's balance.\n"
+            "`bg → Check the government's balance.\n"
             "`send [User] [Amount]` → Transfer money.\n"
+            "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company to user.\n"
             "`send2c [Company] [Amount]` → Transfer money to a company.\n"
             "`stock_price [Company]` → Check a stock’s value.\n"
             "`make_public [Company]` → List a company on the stock exchange.\n"

@@ -295,6 +295,10 @@ class Companies(commands.Cog):
         if not company:
             await ctx.send("⚠️ You do not own this company or it does not exist.")
             return
+        
+        if member.id == sender_id:
+            await ctx.send("⚠️ The owner cannot be appointed as a board member.")
+            return
 
         owner_id, board_members = company
         board_members = json.loads(board_members)
