@@ -375,15 +375,7 @@ class Politics(commands.Cog):
         # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-
-        # Add the vote to the elections table
-        self.c.execute("SELECT votes FROM elections WHERE user_id = ? AND district = ?", (candidate.id, district))
-        row = self.c.fetchone()
-        if row and row[0] is not None:
-            votes = row[0] + 1
-            self.c.execute("UPDATE elections SET votes = ? WHERE user_id = ? AND district = ?", (votes, candidate.id, district))
-        else:
-            self.c.execute("INSERT INTO elections (user_id, district, votes) VALUES (?, ?, ?)", (candidate.id, district, 1))
+        self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)", (candidate.id, district))
         self.conn.commit()
 
         embed = discord.Embed(
