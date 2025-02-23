@@ -35,8 +35,8 @@ class Politics(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS elections (
+            voter INTEGER PRIMARY KEY DEFAULT 0,
             candidate INTEGER PRIMARY KEY,
-            voter INTEGER DEFAULT 0,
             district TEXT,
             chancellor_vote INTEGER DEFAULT 0
         )
@@ -437,7 +437,7 @@ class Politics(commands.Cog):
         # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-        self.c.execute("INSERT INTO elections (candidate, voter, district) VALUES (?, ?, ?)", (candidate.id, voter_id, district))
+        self.c.execute("INSERT INTO elections (voter, candidate, district, chancellor_vote) VALUES (?, ?, ?, 0)", (voter_id, candidate.id, district))
         self.conn.commit()
 
         embed = discord.Embed(
@@ -450,7 +450,7 @@ class Politics(commands.Cog):
         # Check if a candidate has a majority of the votes or if everyone has voted
         self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
         total_voters = self.c.fetchone()[0]
-        self.c.execute("SELECT COUNT(candidate) FROM elections WHERE district = ?", (district,))
+        self.c.execute("SELECT COUNT(voter) FROM elections WHERE district = ?", (district,))
         total_votes = self.c.fetchone()[0]
         self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
