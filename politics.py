@@ -47,18 +47,28 @@ class Politics(commands.Cog):
         user_id = ctx.author.id
 
         if district not in OFFICIAL_DISTRICTS or district == None:
-            await ctx.send(f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.")
+            embed = discord.Embed(
+                title="Invalid District",
+                description=f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
         
         if row:
-            await ctx.send(f"{ctx.author.mention}, you are already in a district ({row[0]}). You cannot switch districts.")
+            embed = discord.Embed(
+                title="District Join",
+                description=f"{ctx.author.mention}, you are already in a district ({row[0]}). If you wish to move, use the `.move` command.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         # Ensure user is added to the database with a default balance
-        self.c.execute("INSERT INTO users (user_id, balance, district) VALUES (?, ?, ?)", (user_id, 500, district))
+        self.c.execute("INSERT INTO users (user_id, balance, district, last_move) VALUES (?, ?, ?, ?)", (user_id, 500, district, datetime.datetime.now().strftime("%Y-%m-%d")))
         self.conn.commit()
         print(f"✅ New user {user_id} added to the database with $500 balance.")
 
@@ -66,8 +76,65 @@ class Politics(commands.Cog):
         if role:
             await ctx.author.add_roles(role)
         
-        await ctx.send(f"{ctx.author.mention} has joined the district of **{district}**!")
+        embed = discord.Embed(
+            title="District Join",
+            description=f"{ctx.author.mention} has joined the district of **{district}**!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
         
+    @commands.command()
+    async def move(self,ctx,district:str):
+        user_id = ctx.author.id
+
+        if district not in OFFICIAL_DISTRICTS or district == None:
+            await ctx.send(f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.")
+            return
+
+        self.c.execute("SELECT district, last_move FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+
+        if not row:
+            await ctx.send(f"⚠️ {ctx.author.mention}, you are not registered in any district. Use the join command first.")
+            return
+
+        current_district, last_move = row
+        if current_district == district:
+            embed = discord.Embed(
+                title="District Move",
+                description=f"{ctx.author.mention}, you are already in the district of **{district}**.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        if last_move:
+            last_move_date = datetime.datetime.strptime(last_move, "%Y-%m-%d")
+            if (datetime.datetime.now() - last_move_date).days < 14:
+                embed = discord.Embed(
+                    title="District Move",
+                    description=f"{ctx.author.mention}, you can only move districts once every two weeks.",
+                    color=discord.Color.red()
+                )
+                await ctx.send(embed=embed)
+            return
+
+        self.c.execute("UPDATE users SET district = ?, last_move = ? WHERE user_id = ?", (district, datetime.datetime.now().strftime("%Y-%m-%d"), user_id))
+        self.conn.commit()
+
+        old_role = discord.utils.get(ctx.guild.roles, name=current_district)
+        new_role = discord.utils.get(ctx.guild.roles, name=district)
+        if old_role:
+            await ctx.author.remove_roles(old_role)
+        if new_role:
+            await ctx.author.add_roles(new_role)
+ 
+        embed = discord.Embed(
+            title="District Move",
+            description=f"{ctx.author.mention} has moved to the district of **{district}**!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
         
     @commands.command()
     @commands.has_role("RP Admin")

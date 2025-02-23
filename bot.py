@@ -46,7 +46,8 @@ def setup_database():
         senator INTEGER DEFAULT 0,
         chancellor INTEGER DEFAULT 0,
         vote_senate INTEGER DEFAULT 0,
-        vote_chancellor INTEGER DEFAULT 0
+        vote_chancellor INTEGER DEFAULT 0,
+        last_move TEXT
     )
     """)
     conn.commit()
