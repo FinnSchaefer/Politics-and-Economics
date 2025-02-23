@@ -251,6 +251,7 @@ class Politics(commands.Cog):
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
         ctx = self.bot.get_channel(1342194754921828465)
+        senate_vote_channel = self.bot.get_channel(1341231889557487739)
         
         if senator_role:
             for member in senator_role.members:
@@ -286,7 +287,7 @@ class Politics(commands.Cog):
             description="📢 Chancellor election will start in 24 hours. Please elect your Senators promptly.",
             color=discord.Color.red()
         )
-        await ctx.send(embed=embed)
+        await senate_vote_channel.send(embed=embed)
 
     async def start_chancellor_election(self, ctx):
         """Starts the Chancellor election 24 hours after Senate elections end."""
@@ -309,14 +310,24 @@ class Politics(commands.Cog):
     async def vote_chancellor(self, ctx, candidate: discord.Member):
         """Allows Senators to vote for the Chancellor."""
         if ctx.channel.id != 1341231889557487739:
-            await ctx.send("⚠️ Chancellor voting can only take place in the designated voting channel.")
+            embed = discord.Embed(
+                title="Chancellor Election",
+                description="⚠️ Chancellor voting can only take place in the designated voting channel.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         voter_id = ctx.author.id
         self.c.execute("SELECT senator FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if not row or row[0] == 0:
-            await ctx.send(f"{ctx.author.mention}, only Senators can vote in the Chancellor election.")
+            embed = discord.Embed(
+                title="Chancellor Election",
+                description=f"{ctx.author.mention}, only Senators can vote in the Chancellor election.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
             return
 
         self.c.execute("SELECT votes FROM elections WHERE district = 'Chancellor'")
@@ -325,12 +336,41 @@ class Politics(commands.Cog):
             await ctx.send("⚠️ No Chancellor election is currently running.")
             return
 
-        votes = json.loads(row[0])
-        votes[str(voter_id)] = candidate.id
-        self.c.execute("UPDATE elections SET votes = ? WHERE district = 'Chancellor'", (json.dumps(votes),))
+        self.c.execute("SELECT chancellor_vote FROM elections WHERE user_id = ?", (voter_id,))
+        row = self.c.fetchone()
+        if row and row[0] != 0:
+            embed = discord.Embed(
+                title="Voter Fraud!",
+                description=f"{ctx.author.mention}, you have already voted in this Chancellor election.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE user_id = ?", (candidate.id, voter_id))
         self.conn.commit()
 
         await ctx.send(f"{ctx.author.mention} has voted for {candidate.mention} as Chancellor!")
+
+        self.c.execute("SELECT COUNT(chancellor_vote) FROM elections WHERE chancellor_vote != 0")
+        total_votes = self.c.fetchone()[0]
+        self.c.execute("SELECT chancellor_vote, COUNT(chancellor_vote) as vote_count FROM elections WHERE chancellor_vote != 0 GROUP BY chancellor_vote ORDER BY vote_count DESC")
+        results = self.c.fetchall()
+
+        if results and (results[0][1] > 13 / 2 or total_votes == 13):
+            winner_id = results[0][0]
+            chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
+            winner = ctx.guild.get_member(winner_id)
+            if winner and chancellor_role:
+                await winner.add_roles(chancellor_role)
+                embed = discord.Embed(
+                    title="Chancellor Election Result",
+                    description=f"📢 The Chancellor election has ended! Congratulations to {winner.mention}!",
+                    color=discord.Color.green()
+                )
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send("⚠️ Chancellor role or winner not found.")
 
 
     @commands.command()
