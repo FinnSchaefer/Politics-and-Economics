@@ -396,6 +396,20 @@ class Politics(commands.Cog):
             await channel.send(embed=embed)
             return
         
+        self.c.execute("SELECT user_id FROM users WHERE district = ?", (row[0],))
+        users_in_district = self.c.fetchall()
+        for user in users_in_district:
+            self.c.execute("SELECT senator FROM users WHERE user_id = ?", (user[0],))
+            senator_row = self.c.fetchone()
+            if senator_row and senator_row[0] == 1:
+                embed = discord.Embed(
+                title="Election Over",
+                description=f"{ctx.author.mention}, the election is over as {ctx.guild.get_member(user[0]).mention} is already a Senator of {row[0]}.",
+                color=discord.Color.red()
+            )
+                await channel.send(embed=embed)
+            return
+        
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
         district_row = self.c.fetchone()
         if not district_row:
@@ -407,18 +421,6 @@ class Politics(commands.Cog):
             await channel.send(embed=embed)
             return
 
-        district = district_row[0]
-        self.c.execute("SELECT user_id FROM users WHERE district = ? AND senator = 1", (district,))
-        row = self.c.fetchone()
-        if row:
-            embed = discord.Embed(
-                title="Election Over",
-                description=f"{ctx.author.mention}, the election is over as there is already a Senator in {district}.",
-                color=discord.Color.green()
-            )
-            await channel.send(embed=embed)
-            return
-        
         district = row[0]
         # Check if the voter is in the specified district
         if not any(role.name == district for role in candidate.roles):
