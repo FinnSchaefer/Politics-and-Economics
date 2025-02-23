@@ -301,7 +301,7 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE users SET vote_chancellor = 0 WHERE senator = 1")
         self.conn.commit()
 
-        channel = self.bot.get_channel(1341231889557487739)
+        channel = self.bot.get_channel(1343032313763725322)
         if channel:
             await channel.send(f"📢 **Chancellor Election Started!** Only Senators can vote.\n"
                        f"Use `.vote_chancellor @user` to cast your vote.")
@@ -309,7 +309,7 @@ class Politics(commands.Cog):
     @commands.command()
     async def vote_chancellor(self, ctx, candidate: discord.Member):
         """Allows Senators to vote for the Chancellor."""
-        if ctx.channel.id != 1341231889557487739:
+        if ctx.channel.id != 1343032313763725322:
             embed = discord.Embed(
                 title="Chancellor Election",
                 description="⚠️ Chancellor voting can only take place in the designated voting channel.",
