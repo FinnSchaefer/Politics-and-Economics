@@ -379,7 +379,7 @@ class Politics(commands.Cog):
         # Add the vote to the elections table
         self.c.execute("SELECT votes FROM elections WHERE user_id = ? AND district = ?", (candidate.id, district))
         row = self.c.fetchone()
-        if row:
+        if row and row[0] is not None:
             votes = row[0] + 1
             self.c.execute("UPDATE elections SET votes = ? WHERE user_id = ? AND district = ?", (votes, candidate.id, district))
         else:
