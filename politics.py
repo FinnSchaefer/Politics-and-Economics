@@ -396,6 +396,17 @@ class Politics(commands.Cog):
             await channel.send(embed=embed)
             return
         
+        self.c.execute("SELECT user_id FROM users WHERE district = ? AND senator = 1", (district,))
+        row = self.c.fetchone()
+        if row:
+            embed = discord.Embed(
+            title="Election Over",
+            description=f"{ctx.author.mention}, the election is over as there is already a Senator in {district}.",
+            color=discord.Color.green()
+            )
+            await channel.send(embed=embed)
+            return
+        
         district = row[0]
         # Check if the voter is in the specified district
         if not any(role.name == district for role in candidate.roles):
