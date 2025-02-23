@@ -338,6 +338,7 @@ class Politics(commands.Cog):
         """Allows users to vote for a senator in their district."""
         voter_id = ctx.author.id
         # Get the message author's district from the users table
+        channel = self.bot.get_channel(1342194754921828465)
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if not row:
@@ -346,7 +347,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you are not registered in any district.",
             color=discord.Color.red()
             )
-            await ctx.send(embed=embed)
+            await channel.send(embed=embed)
             return
         
         district = row[0]
@@ -357,7 +358,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you can only vote in your own district.",
             color=discord.Color.red()
             )
-            await ctx.send(embed=embed)
+            await channel.send(embed=embed)
             return
 
         # Check if the voter has already voted
@@ -369,7 +370,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention}, you have already voted in this election.",
             color=discord.Color.red()
             )
-            await ctx.send(embed=embed)
+            await channel.send(embed=embed)
             return
 
         # Record the vote
@@ -383,7 +384,7 @@ class Politics(commands.Cog):
             description=f"{ctx.author.mention} has voted for {candidate.mention} as Senator of {district}!",
             color=discord.Color.green()
         )
-        await ctx.send(embed=embed)
+        await channel.send(embed=embed)
 
         # Check if a candidate has a majority of the votes or if everyone has voted
         self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
@@ -401,7 +402,7 @@ class Politics(commands.Cog):
             description=f"📢 The election for Senator of {district} has ended! Congratulations to {ctx.guild.get_member(winner_id).mention}!",
             color=discord.Color.green()
             )
-            await ctx.send(embed=embed)
+            await channel.send(embed=embed)
             
     @commands.command()
     async def print_elections(self, ctx):
