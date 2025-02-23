@@ -35,7 +35,8 @@ class Politics(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS elections (
-            user_id INTEGER PRIMARY KEY,
+            candidate INTEGER PRIMARY KEY,
+            voter INTEGER DEFAULT 0,
             district TEXT,
             chancellor_vote INTEGER DEFAULT 0
         )
@@ -436,7 +437,7 @@ class Politics(commands.Cog):
         # Record the vote
         self.c.execute("UPDATE users SET vote_senate = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
-        self.c.execute("INSERT INTO elections (user_id, district) VALUES (?, ?)", (candidate.id, district))
+        self.c.execute("INSERT INTO elections (candidate, voter, district) VALUES (?, ?, ?)", (candidate.id, voter_id, district))
         self.conn.commit()
 
         embed = discord.Embed(
