@@ -18,6 +18,7 @@ class Politics(commands.Cog):
         self.conn = sqlite3.connect("game.db", check_same_thread=False)
         self.c = self.conn.cursor()
         self.setup_politics()
+        self.running = 0
 
     def setup_politics(self):
         """Create required database tables if they don't exist."""
@@ -302,6 +303,9 @@ class Politics(commands.Cog):
     @commands.has_role("RP Admin")
     async def start_elections(self, ctx):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
+        
+        self.running = 1
+        
         # Step 1: Remove Senator and Chancellor roles from all members
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
@@ -412,6 +416,7 @@ class Politics(commands.Cog):
             winner = ctx.guild.get_member(winner_id)
             if winner and chancellor_role:
                 await winner.add_roles(chancellor_role)
+                self.running = 0
                 embed = discord.Embed(
                     title="Chancellor Election Result",
                     description=f"📢 The Chancellor election has ended! Congratulations to {winner.mention}!",
