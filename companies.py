@@ -423,7 +423,7 @@ class Companies(commands.Cog):
         
         # Send stock price and ownership chart
         file = discord.File(buffer, filename="stock_price.png")
-        embed = discord.Embed(title=f"📈 {company_name} Stock Information", color=discord.Color.blue())
+        embed = discord.Embed(title=f"📈 {orig_company_name} Stock Information", color=discord.Color.blue())
         embed.add_field(name="🏢 Owner", value=owner.name if owner else f"User {owner_id}", inline=False)
         embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
         embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
