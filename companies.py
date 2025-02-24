@@ -81,6 +81,7 @@ class Companies(commands.Cog):
             owner_id = self.c.fetchone()[0]
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
+            comp_val = await self.calc_stock_value(comp[0])
             
             if comp[3]:  # If the company is public
                 price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
@@ -88,7 +89,7 @@ class Companies(commands.Cog):
                     name=f"🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
-                    f"💰 Balance: ${comp[1]:,.2f}\n"
+                    f"💰 Value: ${comp_val:,.2f}\n"
                     f"📈 Price per Share: ${price_per_share:.2f}\n"
                     f"📊 Total Shares: {comp[4]}\n"
                     f"📊 Floating Shares: {comp[2]}\n"
@@ -101,7 +102,7 @@ class Companies(commands.Cog):
                 name=f"🏢 {comp[0]}",
                 value=(
                 f"👤 Owner: {owner_name}\n"
-                f"💰 Balance: ${comp[1]:,.2f}\n"
+                f"💰 Value: ${comp_val:,.2f}\n"
                 f"📊 Floating Shares: {comp[4]}\n"
                 f"🔒 Privately Owned\n"
                 ),
@@ -422,6 +423,32 @@ class Companies(commands.Cog):
         embed.set_image(url="attachment://stock_price.png")
         
         await ctx.send(embed=embed, file=file)
+
+    async def calc_stock_value(self, company_name:str):
+        """Calculates the value of a stock based on its holdings of other companies and balance and returns a float"""
+        self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (company_name,))
+        company = self.c.fetchone()
+        if company:
+            balance, total_shares = company
+            price_per_share = balance / total_shares if total_shares > 0 else 0
+            
+            # Check if the company owns shares in other companies
+            self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
+            owned_stocks = self.c.fetchall()
+            
+            total_stock_value = 0
+            for owned_company_name, shares in owned_stocks:
+                self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (owned_company_name,))
+                owned_company = self.c.fetchone()
+                if owned_company:
+                    owned_balance, owned_total_shares = owned_company
+                    owned_price_per_share = owned_balance / owned_total_shares if owned_total_shares > 0 else 0
+                    total_stock_value += shares * owned_price_per_share
+            
+            return price_per_share + total_stock_value
+        return 0
+        
+        
 
     @commands.command(aliases=["cbs"])
     async def company_buy_shares(self, ctx, purchaser_company: str, stock: str, amount: int):
