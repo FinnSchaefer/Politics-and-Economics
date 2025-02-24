@@ -268,7 +268,7 @@ class Politics(commands.Cog):
 
         party_list = "\n\n".join([f"**{row[0]}**\n👑 Party Head: <@{row[1]}>\n📝 Description: {row[2]}" for row in rows])
         embed = discord.Embed(
-            title="📢 **Current Poltical Parties:**",
+            title="📢 **Current Poltical Parties**",
             description=f"\n\n{party_list}",
             color=discord.Color.blue()
         )
