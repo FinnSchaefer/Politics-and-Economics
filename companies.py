@@ -384,11 +384,10 @@ class Companies(commands.Cog):
         sizes = []
         for shareholder_id, shares in ownership_data:
             user = self.bot.get_user(shareholder_id)
-            if user and user.id.isdigit():
-                self.c.execute("SELECT name FROM companies WHERE company_id = ?", (int(user.id),))
-                company_name = self.c.fetchone()
-                if company_name:
-                    labels.append(company_name[0])
+            self.c.execute("SELECT name FROM companies WHERE company_id = ?", (shareholder_id,))
+            company_name = self.c.fetchone()
+            if company_name:
+                labels.append(company_name[0])
             else:
                 labels.append(user.name if user else f"User {shareholder_id}")
             sizes.append(shares)
