@@ -164,6 +164,27 @@ class Politics(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command()
+    async def about(self,ctx,member:discord.Member=None):
+        """Displays information about the individual or someone else."""
+        member = member or ctx.author
+        user_id = member.id
+
+        self.c.execute("SELECT balance, district, party, senator, chancellor FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+
+        if not row:
+            await ctx.send("⚠️ User not found in the database.")
+            return
+
+        balance, district, party, senator, chancellor = row
+        embed = discord.Embed(
+            title=f"📜 User Information: {member.name}",
+            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n 🎉**Party:** {party}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)    
+        
+    @commands.command()
     @commands.has_role("RP Admin")
     async def stimulus(self, ctx, district: str, amount: float):
         """Admin command to send stimulus to a district."""
@@ -502,7 +523,7 @@ class Politics(commands.Cog):
         self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
 
-        if results and (results[0][1] > total_voters / 2 or total_votes == total_voters):
+        if results and (results[0][1] > total_voters / 2 or total_votes == total_voters and total_voters != 1):
             winner_id = results[0][0]
             await self.assign_senator(ctx, winner_id, district)
             embed = discord.Embed(
