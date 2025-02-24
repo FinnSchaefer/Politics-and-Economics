@@ -43,6 +43,7 @@ def setup_database():
         user_id INTEGER PRIMARY KEY,
         balance REAL DEFAULT 0.0,
         district TEXT,
+        party TEXT,
         senator INTEGER DEFAULT 0,
         chancellor INTEGER DEFAULT 0,
         vote_senate INTEGER DEFAULT 0,
