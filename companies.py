@@ -389,8 +389,6 @@ class Companies(commands.Cog):
                 company_name = self.c.fetchone()
                 if company_name:
                     labels.append(company_name[0])
-                else:
-                    labels.append(user.name)
             else:
                 labels.append(user.name if user else f"User {shareholder_id}")
             sizes.append(shares)
