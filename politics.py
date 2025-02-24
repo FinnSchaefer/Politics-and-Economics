@@ -451,13 +451,11 @@ class Politics(commands.Cog):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
         
         self.running = 1
-        print("made it here")
         # Step 1: Remove Senator and Chancellor roles from all members
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
         ctx = self.bot.get_channel(1342194754921828465)
         senate_vote_channel = self.bot.get_channel(1343032313763725322)
-        print("made it here2")
         if senator_role:
             for member in senator_role.members:
                 await member.remove_roles(senator_role)
@@ -469,7 +467,6 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
         self.c.execute("DELETE FROM elections")
         self.conn.commit()
-        print("made it here3")
         await ctx.send("All previous election data has been cleared. Starting new elections...")
 
         # Step 3: Start new elections
@@ -525,7 +522,6 @@ class Politics(commands.Cog):
             await ctx.send("⚠️ A Chancellor has already been elected.")
             return
 
-        print("made it here1")
         self.c.execute("SELECT vote_chancellor FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if row and row[0] != 0:
@@ -538,7 +534,6 @@ class Politics(commands.Cog):
             return
 
 
-        print("made it2")
         self.c.execute("UPDATE users SET vote_chancellor = 1 WHERE user_id = ?", (voter_id,))
         self.conn.commit()
         self.c.execute("UPDATE elections SET chancellor_vote = ? WHERE voter = ?", (candidate.id, voter_id))
@@ -648,7 +643,7 @@ class Politics(commands.Cog):
         self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
 
-        if results and (results[0][1] > total_voters / 2 or total_votes == total_voters and total_voters != 1):
+        if results and ((results[0][1] > total_voters / 2 or total_votes == total_voters) and (total_voters != 1 and total_votes > 3)):
             winner_id = results[0][0]
             await self.assign_senator(ctx, winner_id, district)
             embed = discord.Embed(
