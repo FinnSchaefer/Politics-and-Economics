@@ -385,7 +385,7 @@ class Companies(commands.Cog):
         for shareholder_id, shares in ownership_data:
             user = self.bot.get_user(shareholder_id)
             if user and user.name.isdigit():
-                self.c.execute("SELECT name FROM companies WHERE company_id = ?", (int(user.name),))
+                self.c.execute("SELECT company_name FROM companies WHERE company_id = ?", (int(user.name),))
                 company_name = self.c.fetchone()
                 if company_name:
                     labels.append(company_name[0])
