@@ -114,6 +114,9 @@ async def help(ctx):
             "`laws` → See all passed laws.\n"
             "`start_election` → Admin-only: Start elections.\n"
             "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
+            "`mp [Party Name]` → Create a new political party.\n"
+            "`jp [Party Name]` → Join an existing political party.\n"
+            "`pp` → Show all political parties.\n"
         ),
         inline=False
     )
