@@ -287,7 +287,9 @@ class Politics(commands.Cog):
             await ctx.send("⚠️ User not found in the database.")
             return
 
-        balance, district, party, senator, chancellor = row
+        balance, district, party, senator_int, chancellor_int = row
+        senator = district if senator_int else "No"
+        chancellor = "Yes" if chancellor_int else "No"
 
         party_info = "None"
         if party:
