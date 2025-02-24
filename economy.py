@@ -29,6 +29,7 @@ class Economy(commands.Cog):
             self.conn.commit()
             
     @commands.command()
+    @commands.has_role("RP Admin")
     async def reload_tax_table(self,ctx):
         """Reloads the tax table."""
         self.c.execute("DROP TABLE tax_rate")
