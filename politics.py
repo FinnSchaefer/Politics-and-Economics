@@ -42,6 +42,13 @@ class Politics(commands.Cog):
             chancellor_vote INTEGER DEFAULT 0
         )
         """)
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS parties(
+            party TEXT PRIMARY KEY,
+            party_head INTEGER,
+            description TEXT
+        )
+        """)
         self.conn.commit()
     
     @commands.command()
@@ -164,6 +171,57 @@ class Politics(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command()
+    async def make_party(self,ctx, party:str, description:str):
+        user_id = ctx.author.id
+
+        # Ensure the party column exists in the users table
+        try:
+            self.c.execute("SELECT party FROM users LIMIT 1;")
+        except sqlite3.OperationalError:
+            self.c.execute("ALTER TABLE users ADD COLUMN party TEXT;")
+            self.conn.commit()
+            print("✅ Added 'party' column to 'users' table.")
+        # Check if the user is already in a party
+        self.c.execute("SELECT party FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+
+        if row and row[0]:
+            embed = discord.Embed(
+            title="Party Creation",
+            description="You are already in a party.",
+            color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Check if the party already exists
+        self.c.execute("SELECT party FROM parties WHERE party = ?", (party,))
+        row = self.c.fetchone()
+
+        if row:
+            embed = discord.Embed(
+            title="Party Creation",
+            description="A party with this name already exists.",
+            color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Add the party to the parties table
+        self.c.execute("INSERT INTO parties (party, party_head, description) VALUES (?, ?)", (party, user_id, description))
+        
+        # Add the user to the users table with the new party
+        self.c.execute("UPDATE users SET party = ? WHERE user_id = ?", (party, user_id))
+        self.conn.commit()
+
+        embed = discord.Embed(
+            title="Party Created",
+            description=f"✅ {ctx.author.mention}, the party **{party}** has been created and you have joined it!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+        
+    @commands.command()
     async def about(self,ctx,member:discord.Member=None):
         """Displays information about the individual or someone else."""
         member = member or ctx.author
@@ -177,12 +235,24 @@ class Politics(commands.Cog):
             return
 
         balance, district, party, senator, chancellor = row
+
+        party_info = "None"
+        if party:
+            self.c.execute("SELECT party_head FROM parties WHERE party = ?", (party,))
+            party_row = self.c.fetchone()
+            if party_row:
+                party_head = party_row[0]
+            if party_head == user_id:
+                party_info = f"{party} (Party Owner)"
+            else:
+                party_info = party
+
         embed = discord.Embed(
             title=f"📜 User Information: {member.name}",
-            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n 🎉**Party:** {party}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}",
+            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n🎉 **Party:** {party_info}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}",
             color=discord.Color.blue()
         )
-        await ctx.send(embed=embed)    
+        await ctx.send(embed=embed)
         
     @commands.command()
     @commands.has_role("RP Admin")
