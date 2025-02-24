@@ -224,6 +224,17 @@ class Politics(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command()
+    async def print_parties(self,ctx):
+        self.c.execute("SELECT party, party_head, description FROM parties")
+        rows = self.c.fetchall()
+        if not rows:
+            await ctx.send("📜 The parties table is currently empty.")
+            return
+
+        party_list = "\n".join([f"**{row[0]}**\n👑 Party Head: <@{row[1]}>\n📝 Description: {row[2]}" for row in rows])
+        await ctx.send(f"📢 **Parties Table:**\n\n{party_list}")    
+        
+    @commands.command()
     async def about(self,ctx,member:discord.Member=None):
         """Displays information about the individual or someone else."""
         member = member or ctx.author
