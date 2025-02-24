@@ -451,13 +451,13 @@ class Politics(commands.Cog):
         """Starts elections for all districts, removes existing Senators, and schedules Chancellor election."""
         
         self.running = 1
-        
+        print("made it here")
         # Step 1: Remove Senator and Chancellor roles from all members
         senator_role = discord.utils.get(ctx.guild.roles, name="Senator")
         chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
         ctx = self.bot.get_channel(1342194754921828465)
         senate_vote_channel = self.bot.get_channel(1343032313763725322)
-        
+        print("made it here2")
         if senator_role:
             for member in senator_role.members:
                 await member.remove_roles(senator_role)
@@ -469,7 +469,7 @@ class Politics(commands.Cog):
         self.c.execute("UPDATE users SET senator = 0, chancellor = 0, vote_senate = 0, vote_chancellor = 0")
         self.c.execute("DELETE FROM elections")
         self.conn.commit()
-
+        print("made it here3")
         await ctx.send("All previous election data has been cleared. Starting new elections...")
 
         # Step 3: Start new elections
