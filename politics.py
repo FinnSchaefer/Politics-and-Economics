@@ -300,13 +300,9 @@ class Politics(commands.Cog):
             else:
                 party_info = party
 
-        self.c.execute("SELECT company_name FROM companies WHERE owner_id = ?", (user_id,))
-        company_row = self.c.fetchone()
-        company_info = f"\n🏢 **Company:** {company_row[0]}" if company_row else ""
-
         embed = discord.Embed(
             title=f"📜 User Information: {member.name}",
-            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n🎉 **Party:** {party_info}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}{company_info}",
+            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n🎉 **Party:** {party_info}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}",
             color=discord.Color.blue()
         )
         await ctx.send(embed=embed)
