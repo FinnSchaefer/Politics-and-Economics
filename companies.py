@@ -461,11 +461,16 @@ class Companies(commands.Cog):
     @commands.command(aliases=["cbs"])
     async def company_buy_shares(self, ctx, purchaser_company: str, stock: str, amount: int):
         """Allows companies to buy shares in another company."""
+        if(amount <= 0):
+            await ctx.send("⚠️ You must buy a positive amount of shares.")
+            return
+        
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (purchaser_company,))
         purchaser_id = self.c.fetchone()[0]
         
         self.c.execute("SELECT balance, total_shares, is_public FROM companies WHERE name = ?", (stock,))
         company = self.c.fetchone()
+        
         
         if not company:
             await ctx.send("⚠️ Company not found.")
@@ -503,6 +508,9 @@ class Companies(commands.Cog):
     @commands.command(aliases=["css"])
     async def company_sell_shares(self, ctx, seller_company: str, stock: str, amount: int):
         """Allows companies to sell shares in another company."""
+        if(amount <= 0):
+            await ctx.send("⚠️ You must sell a positive amount of shares.")
+            return
         
         self.c.execute("SELECT balance, shares_available, total_shares, is_public FROM companies WHERE name = ?", (stock,))
         company = self.c.fetchone()
@@ -531,8 +539,12 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ The seller company does not own enough shares to sell this amount.")
             return
         
+        self.c.execute("SELECT capital_gains_rate FROM tax_rate")
+        capital_gains_rate = self.c.fetchone()[0]
+        
         price_per_share = balance / total_shares if total_shares > 0 else 0
-        total_earnings = price_per_share * amount
+        tax = (price_per_share * amount) * capital_gains_rate
+        total_earnings = (price_per_share * amount) - tax
         
         if seller_balance[0] < total_earnings:
             await ctx.send("⚠️ The seller company does not have enough funds to sell shares.")
@@ -540,6 +552,7 @@ class Companies(commands.Cog):
         
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (total_earnings, stock))
         self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (total_earnings, seller_company))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.c.execute("UPDATE companies SET shares_available = shares_available + ? WHERE name = ?", (amount, stock))
         self.c.execute("UPDATE ownership SET shares = shares - ? WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?) AND company_name = ?", (amount, seller_company, stock))
         self.c.execute("DELETE FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?) AND company_name = ? AND shares = 0", (seller_company, stock))
@@ -550,6 +563,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Seller", value=seller_company, inline=False)
         embed.add_field(name="Shares Sold", value=amount, inline=False)
         embed.add_field(name="Total Earnings", value=f"${total_earnings:.2f}", inline=False)
+        embed.add_field(name="Capital Gains Tax", value=f"${tax:.2f}", inline=False)
         await ctx.send(embed=embed)
         
     @commands.command(aliases=["co"])
@@ -693,9 +707,8 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ You do not own enough shares to sell this amount.")
             return
         
-        self.c.execute("SELECT corporate_rate, government_balance FROM tax_rate")
-        tax_row = self.c.fetchone()
-        corporate_rate, government_balance = tax_row
+        self.c.execute("SELECT capital_gains_rate FROM tax_rate")
+        capital_gains_rate = self.c.fetchone()[0]
         
         total_earnings = 0
         for _ in range(amount):
@@ -704,7 +717,7 @@ class Companies(commands.Cog):
             balance -= price_per_share
             shares_available += 1
         
-        tax = total_earnings * corporate_rate
+        tax = total_earnings * capital_gains_rate
         
         self.c.execute("UPDATE ownership SET shares = shares - ? WHERE owner_id = ? AND company_name = ?", (amount, user_id, company_name))
         self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (total_earnings - tax, user_id))
@@ -721,7 +734,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Company", value=company_name, inline=False)
         embed.add_field(name="Shares Sold", value=amount, inline=False)
         embed.add_field(name="Total Earnings", value=f"${total_earnings:.2f}", inline=False)
-        embed.add_field(name="Corporate Tax", value=f"${tax:.2f}", inline=False)
+        embed.add_field(name="Capital Gains Tax", value=f"${tax:.2f}", inline=False)
         if largest_shareholder and largest_shareholder[0] != user_id:
             self.c.execute("UPDATE companies SET owner_id = ? WHERE name = ?", (largest_shareholder[0], company_name))
             self.conn.commit()

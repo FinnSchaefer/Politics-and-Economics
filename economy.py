@@ -15,6 +15,7 @@ class Economy(commands.Cog):
         CREATE TABLE IF NOT EXISTS tax_rate (
             trade_rate REAL DEFAULT 0.05,
             corporate_rate REAL DEFAULT 0.1,
+            capital_gains_rate REAL DEFAULT 0.15,
             government_balance REAL DEFAULT 0
     )
     """)
@@ -26,6 +27,14 @@ class Economy(commands.Cog):
             print("🔹 No tax rate found, inserting default values.")
             self.c.execute("INSERT INTO tax_rate (trade_rate, corporate_rate,government_balance) VALUES (0.05, 0.1, 0)")
             self.conn.commit()
+            
+    @commands.command()
+    async def reload_tax_table(self,ctx):
+        """Reloads the tax table."""
+        self.c.execute("DROP TABLE tax_rate")
+        self.conn.commit()
+        self.setup_economy()
+        await ctx.send("Tax table reloaded.")        
             
     @commands.command(aliases=['balance', 'bal'])
     async def b(self, ctx, member: discord.Member = None):
@@ -52,8 +61,11 @@ class Economy(commands.Cog):
         if row:
             embed = discord.Embed(title="Government Balance and Tax Rates", color=discord.Color.green())
             embed.add_field(name="Balance", value=f"**${row[0]:.2f}** 💰", inline=True)
-            embed.add_field(name="Trade Rate", value="5%", inline=True)
-            embed.add_field(name="Corporate Rate", value="10%", inline=True)
+            self.c.execute("SELECT trade_rate, corporate_rate, capital_gains_rate FROM tax_rate")
+            rates = self.c.fetchone()
+            embed.add_field(name="Trade Rate", value=f"{rates[0] * 100:.2f}%", inline=True)
+            embed.add_field(name="Corporate Rate", value=f"{rates[1] * 100:.2f}%", inline=True)
+            embed.add_field(name="Capital Gains Rate", value=f"{rates[2] * 100:.2f}%", inline=True)
             await ctx.send(embed=embed)
         else:
             await ctx.send("No government balance found.")
