@@ -17,7 +17,7 @@ class Resources(commands.Cog):
         CREATE TABLE IF NOT EXISTS resources (
             district TEXT PRIMARY KEY,
             resource TEXT,
-            stockpile INTEGER DEFAULT 1000,
+            stockpile INTEGER DEFAULT 100000,
             price_per_unit REAL DEFAULT 100.0
         )
         """)
@@ -108,7 +108,7 @@ class Resources(commands.Cog):
         rows = self.c.fetchall()
 
         for district, price in rows:
-            fluctuation = random.uniform(-0.1, 0.1)  # Prices change by ±10%
+            fluctuation = random.uniform(-0.4, 0.2)  # Prices change by -40% to +20%
             new_price = max(10, price * (1 + fluctuation))  # Ensure price never drops below $10
             self.c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
 
