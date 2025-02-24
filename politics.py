@@ -173,7 +173,7 @@ class Politics(commands.Cog):
     @commands.command()
     async def make_party(self,ctx, party:str, description:str):
         user_id = ctx.author.id
-
+        print("here")
         # Ensure the party column exists in the users table
         try:
             self.c.execute("SELECT party FROM users LIMIT 1;")
@@ -181,6 +181,8 @@ class Politics(commands.Cog):
             self.c.execute("ALTER TABLE users ADD COLUMN party TEXT;")
             self.conn.commit()
             print("✅ Added 'party' column to 'users' table.")
+        
+        print("2")
         # Check if the user is already in a party
         self.c.execute("SELECT party FROM users WHERE user_id = ?", (user_id,))
         row = self.c.fetchone()
