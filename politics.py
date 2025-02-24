@@ -506,20 +506,13 @@ class Politics(commands.Cog):
         voter_id = ctx.author.id
         elections_announcements = self.bot.get_channel(1342194754921828465)
         
-        self.c.execute("SELECT senator FROM users WHERE user_id = ?", (voter_id,))
-        row = self.c.fetchone()
-        if not row or row[0] == 0:
+        if self.running == 0:
             embed = discord.Embed(
                 title="Chancellor Election",
-                description=f"{ctx.author.mention}, only Senators can vote in the Chancellor election.",
+                description=f"{ctx.author.mention}, there are no elections currently running.",
                 color=discord.Color.red()
             )
             await ctx.send(embed=embed)
-            return
-
-        chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
-        if chancellor_role and any(member for member in ctx.guild.members if chancellor_role in member.roles):
-            await ctx.send("⚠️ A Chancellor has already been elected.")
             return
 
         self.c.execute("SELECT vote_chancellor FROM users WHERE user_id = ?", (voter_id,))
