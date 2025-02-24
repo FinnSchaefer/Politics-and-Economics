@@ -424,8 +424,8 @@ class Companies(commands.Cog):
         
         await ctx.send(embed=embed, file=file)
 
-    async def calc_stock_value(self, company_name:str):
-        """Calculates the value of a stock based on its holdings of other companies and balance and returns a float"""
+    async def calc_stock_value(self, company_name: str):
+        """Calculates the value of a stock based on its holdings of other companies and balance and returns a float."""
         self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         if company:
@@ -445,7 +445,7 @@ class Companies(commands.Cog):
                     owned_price_per_share = owned_balance / owned_total_shares if owned_total_shares > 0 else 0
                     total_stock_value += shares * owned_price_per_share
             
-            return price_per_share + total_stock_value
+            return balance + total_stock_value
         return 0
         
         
