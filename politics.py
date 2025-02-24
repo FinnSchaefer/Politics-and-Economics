@@ -214,7 +214,7 @@ class Politics(commands.Cog):
         )
         await ctx.send(embed=embed)
         
-    @commands.command()
+    @commands.command(aliases=["jp"])
     async def join_party(self,ctx,part: str):
         user_id = ctx.author.id
 
