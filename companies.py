@@ -508,7 +508,7 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ Company not found.")
             return
         
-        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_id,))
+        self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = ?", (company_id[0],))
         ownerships = self.c.fetchall()
         
         if not ownerships:
@@ -516,17 +516,22 @@ class Companies(commands.Cog):
             return
         
         embed = discord.Embed(title=f"📈 {company_name} Stock Ownership", color=discord.Color.blue())
-
-        for owner_id, shares in ownerships:
-            self.c.execute("SELECT name FROM companies WHERE company_id = ?", (owner_id,))
-            user = self.c.fetchone()
-            user = user[0] if user else f"Company {owner_id}"
-            embed.add_field(
-                name=user,
-                value=f"Shares: {shares}",
-                inline=False
-            )
         
+        for owned_company_name, shares in ownerships:
+            self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (owned_company_name,))
+            company = self.c.fetchone()
+            if company:
+                balance, total_shares = company
+                price_per_share = balance / total_shares if total_shares > 0 else 0
+                embed.add_field(
+                    name=f"🏢 {owned_company_name}",
+                    value=(
+                    f"📊 Shares Owned: {shares}\n"
+                    f"💰 Value per Share: ${price_per_share:.2f}\n"
+                    f"💸 Total Value: ${shares * price_per_share:.2f}"
+                    ),
+                    inline=False
+                )
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["buyshares","bs"])
