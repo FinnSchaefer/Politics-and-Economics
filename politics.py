@@ -170,7 +170,7 @@ class Politics(commands.Cog):
         )
         await ctx.send(embed=embed)
         
-    @commands.command()
+    @commands.command(aliases="mp")
     async def make_party(self,ctx, party:str, description:str):
         user_id = ctx.author.id
         print("here")
@@ -215,15 +215,64 @@ class Politics(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command()
+    async def join_party(self,ctx,part: str):
+        user_id = ctx.author.id
+
+        # Check if the user is already in a party
+        self.c.execute("SELECT party FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if row and row[0]:
+            embed = discord.Embed(
+                title="Party Join",
+                description="You are already in a party.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Check if the party exists
+        self.c.execute("SELECT party FROM parties WHERE party = ?", (part,))
+        row = self.c.fetchone()
+        if not row:
+            embed = discord.Embed(
+                title="Party Join",
+                description="This party does not exist.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Add the user to the party
+        self.c.execute("UPDATE users SET party = ? WHERE user_id = ?", (part, user_id))
+        self.conn.commit()
+
+        embed = discord.Embed(
+            title="Party Join",
+            description=f"✅ {ctx.author.mention}, you have joined the party **{part}**!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)    
+        
+    @commands.command(aliases=["pp"])
     async def print_parties(self,ctx):
         self.c.execute("SELECT party, party_head, description FROM parties")
         rows = self.c.fetchall()
         if not rows:
-            await ctx.send("📜 The parties table is currently empty.")
+            embed = discord.Embed(
+            title="Parties",
+            description="📜 There are currently no parties.",
+            color=discord.Color.blue()
+            )
+            await ctx.send(embed=embed)
             return
 
-        party_list = "\n".join([f"**{row[0]}**\n👑 Party Head: <@{row[1]}>\n📝 Description: {row[2]}" for row in rows])
-        await ctx.send(f"📢 **Parties Table:**\n\n{party_list}")    
+        party_list = "\n\n".join([f"**{row[0]}**\n👑 Party Head: <@{row[1]}>\n📝 Description: {row[2]}" for row in rows])
+        embed = discord.Embed(
+            title="Parties",
+            description=f"📢 **Parties Table:**\n\n{party_list}",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
         
     @commands.command()
     async def about(self,ctx,member:discord.Member=None):
@@ -251,9 +300,13 @@ class Politics(commands.Cog):
             else:
                 party_info = party
 
+        self.c.execute("SELECT company_name FROM companies WHERE owner_id = ?", (user_id,))
+        company_row = self.c.fetchone()
+        company_info = f"\n🏢 **Company:** {company_row[0]}" if company_row else ""
+
         embed = discord.Embed(
             title=f"📜 User Information: {member.name}",
-            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n🎉 **Party:** {party_info}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}",
+            description=f"💰 **Balance:** ${balance:.2f}\n🏙️ **District:** {district}\n🎉 **Party:** {party_info}\n👑 **Senator:** {senator}\n👑 **Chancellor:** {chancellor}{company_info}",
             color=discord.Color.blue()
         )
         await ctx.send(embed=embed)
