@@ -170,7 +170,7 @@ class Politics(commands.Cog):
         )
         await ctx.send(embed=embed)
         
-    @commands.command(aliases="mp")
+    @commands.command(aliases=["mp"])
     async def make_party(self,ctx, party:str, description:str):
         user_id = ctx.author.id
         print("here")
