@@ -174,6 +174,21 @@ class Politics(commands.Cog):
     async def make_party(self,ctx, party:str, description:str):
         user_id = ctx.author.id
         print("here")
+        # Ensure the parties table exists
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS parties(
+            party TEXT PRIMARY KEY,
+            party_head INTEGER,
+            description TEXT
+        )
+        """)
+        self.conn.commit()
+
+        self.c.execute("SELECT party, party_head, description FROM parties")
+        rows = self.c.fetchall()
+        if not rows:
+            await ctx.send("📜 The parties table is currently empty.")
+            return
         # Ensure the party column exists in the users table
         try:
             self.c.execute("SELECT party FROM users LIMIT 1;")
