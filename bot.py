@@ -72,7 +72,13 @@ async def clear(ctx):
 async def rolestrip(ctx):
     """Removes all roles from all users in the server."""
     for member in ctx.guild.members:
-        await member.edit(roles=[])
+        try:
+            await member.edit(roles=[])
+            await asyncio.sleep(1)  # Add delay to avoid rate limits
+        except discord.Forbidden:
+            await ctx.send(f"Failed to remove roles from {member.name} due to insufficient permissions.")
+        except discord.HTTPException as e:
+            await ctx.send(f"Failed to remove roles from {member.name} due to an HTTP error: {e}")
     await ctx.send("Roles have been stripped from all users.")
 
 @bot.command(name="help")
@@ -104,7 +110,7 @@ async def help(ctx):
         name="💰 **Economy Commands**",
         value=(
             "`balance` → Check your balance.\n"
-            "`bg → Check the government's balance.\n"
+            "`bg` → Check the government's balance.\n"
             "`send [User] [Amount]` → Transfer money.\n"
             "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company to user.\n"
             "`send2c [Company] [Amount]` → Transfer money to a company.\n"
