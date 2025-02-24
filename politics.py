@@ -122,6 +122,18 @@ class Politics(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+        # Check if the new district already has 7 members
+        self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
+        count = self.c.fetchone()[0]
+        if count >= 7:
+            embed = discord.Embed(
+            title="District Full",
+            description=f"{ctx.author.mention}, the district of **{district}** already has 7 members and cannot accept more.",
+            color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
         if last_move:
             last_move_date = datetime.datetime.strptime(last_move, "%Y-%m-%d")
             if (datetime.datetime.now() - last_move_date).days < 14:

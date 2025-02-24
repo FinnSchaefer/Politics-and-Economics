@@ -82,6 +82,18 @@ async def rolestrip(ctx):
             await ctx.send(f"Failed to remove roles from {member.name} due to an HTTP error: {e}")
     await ctx.send("Roles have been stripped from all users.")
 
+@bot.command()
+async def rp(ctx):
+    """Assings the RP Ping role to the user."""
+    role = discord.utils.get(ctx.guild.roles, name="RP Ping")
+    await ctx.author.add_roles(role)
+    embed = discord.Embed(
+        title="Role Assigned",
+        description="You have been assigned the RP Ping role.",
+        color=discord.Color.green()
+    )
+    await ctx.send(embed=embed)
+
 @bot.command(name="help")
 async def help(ctx):
     """Displays a help message with all available commands."""
