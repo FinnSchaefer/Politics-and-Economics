@@ -501,20 +501,29 @@ class Companies(commands.Cog):
     @commands.command(aliases=["co"])
     async def company_ownership(self, ctx, company_name: str):
         """Shows all shares that a company owns"""
-        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
+        self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company_name,))
+        company_id = self.c.fetchone()
+        
+        if not company_id:
+            await ctx.send("⚠️ Company not found.")
+            return
+        
+        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_id,))
         ownerships = self.c.fetchall()
         
         if not ownerships:
             await ctx.send("📜 No ownership data found for this company.")
             return
         
-        embed = discord.Embed(title="📈 Company Ownership", color=discord.Color.blue())
-        
+        embed = discord.Embed(title=f"📈 {company_name} Stock Ownership", color=discord.Color.blue())
+
         for owner_id, shares in ownerships:
-            user = self.bot.get_user(owner_id)
+            self.c.execute("SELECT name FROM companies WHERE company_id = ?", (owner_id,))
+            user = self.c.fetchone()
+            user = user[0] if user else f"Company {owner_id}"
             embed.add_field(
-                name=f"👤 {user.name if user else f'User {owner_id}'}",
-                value=f"📊 Shares Owned: {shares}",
+                name=f"{owner_id}" if not user else user.name,
+                value=f"Shares: {shares}",
                 inline=False
             )
         
