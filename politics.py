@@ -607,10 +607,12 @@ class Politics(commands.Cog):
         self.c.execute("SELECT vote_senate FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
         if row and row[0] == 1:
+            self.c.execute("UPDATE elections SET candidate = ? WHERE voter = ?", (candidate.id, voter_id))
+            self.conn.commit()
             embed = discord.Embed(
-            title="Vote Already Cast",
-            description=f"{ctx.author.mention}, you have already voted in this election.",
-            color=discord.Color.red()
+            title="Vote Updated",
+            description=f"{ctx.author.mention}, your vote has been updated to {candidate.mention}.",
+            color=discord.Color.green()
             )
             await ctx.send(embed=embed)
             return
@@ -636,7 +638,7 @@ class Politics(commands.Cog):
         self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
         results = self.c.fetchall()
 
-        if results and ((results[0][1] > total_voters / 2 or total_votes == total_voters) and (total_voters != 1 and total_votes > 3)):
+        if results and (((results[0][1] > (total_voters / 2)) or total_votes == total_voters) and (total_voters != 1 and total_votes >= 3)):
             winner_id = results[0][0]
             await self.assign_senator(ctx, winner_id, district)
             embed = discord.Embed(
@@ -644,19 +646,7 @@ class Politics(commands.Cog):
             description=f"📢 The election for Senator of {district} has ended! Congratulations to {ctx.guild.get_member(winner_id).mention}!",
             color=discord.Color.green()
             )
-            await channel.send(embed=embed)
-            
-    @commands.command()
-    async def print_elections(self, ctx):
-        """Prints the elections table."""
-        self.c.execute("SELECT candidate, voter, district, chancellor_vote FROM elections")
-        rows = self.c.fetchall()
-        if not rows:
-            await ctx.send("📜 The elections table is currently empty.")
-            return
-
-        election_list = "\n".join([f"Candidate ID: {row[0]}, Voter ID: {row[1]}, District: {row[2]}, Chancellor Vote: {row[3]}" for row in rows])
-        await ctx.send(f"📢 **Elections Table:**\n\n{election_list}")
+            await channel.send(embed=embed) 
 
     async def assign_senator(self, ctx, user_id, district):
         """Assigns the senator role to the election winner and ensures the database schema is correct."""
