@@ -522,7 +522,7 @@ class Companies(commands.Cog):
             user = self.c.fetchone()
             user = user[0] if user else f"Company {owner_id}"
             embed.add_field(
-                name=f"{owner_id}" if not user else user.name,
+                name=user,
                 value=f"Shares: {shares}",
                 inline=False
             )
