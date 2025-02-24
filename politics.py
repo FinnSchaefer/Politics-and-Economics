@@ -50,9 +50,9 @@ class Politics(commands.Cog):
 
         if district not in OFFICIAL_DISTRICTS or district == None:
             embed = discord.Embed(
-                title="Invalid District",
-                description=f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.",
-                color=discord.Color.red()
+            title="Invalid District",
+            description=f"{ctx.author.mention}, '{district}' is not a valid district. Please choose from: {', '.join(OFFICIAL_DISTRICTS)}.",
+            color=discord.Color.red()
             )
             await ctx.send(embed=embed)
             return
@@ -62,9 +62,21 @@ class Politics(commands.Cog):
         
         if row:
             embed = discord.Embed(
-                title="District Join",
-                description=f"{ctx.author.mention}, you are already in a district ({row[0]}). If you wish to move, use the `.move` command.",
-                color=discord.Color.red()
+            title="District Join",
+            description=f"{ctx.author.mention}, you are already in a district ({row[0]}). If you wish to move, use the `.move` command.",
+            color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Check if the district already has 7 members
+        self.c.execute("SELECT COUNT(*) FROM users WHERE district = ?", (district,))
+        count = self.c.fetchone()[0]
+        if count >= 7:
+            embed = discord.Embed(
+            title="District Full",
+            description=f"{ctx.author.mention}, the district of **{district}** already has 7 members and cannot accept more.",
+            color=discord.Color.red()
             )
             await ctx.send(embed=embed)
             return
