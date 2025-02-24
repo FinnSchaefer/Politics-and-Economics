@@ -452,6 +452,8 @@ class Companies(commands.Cog):
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (purchaser_id, stock, amount, amount))
         self.conn.commit()
         
+        price_per_share = balance / total_shares if total_shares > 0 else 0
+        
         embed = discord.Embed(title="📈 Shares Purchased", color=discord.Color.green())
         embed.add_field(name="Company", value=stock, inline=False)
         embed.add_field(name="Purchaser", value=purchaser_company, inline=False)
@@ -459,9 +461,8 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["css"])
-    async def company_sell_shares(self, ctx, seller_company: str, stock: str):
+    async def company_sell_shares(self, ctx, seller_company: str, stock: str, amount: int):
         """Allows companies to sell shares in another company."""
-        sender_id = ctx.author.id
         
         self.c.execute("SELECT balance, shares_available, total_shares, is_public FROM companies WHERE name = ?", (stock,))
         company = self.c.fetchone()
@@ -479,24 +480,37 @@ class Companies(commands.Cog):
         self.c.execute("SELECT balance FROM companies WHERE name = ?", (seller_company,))
         seller_balance = self.c.fetchone()
         
-        if not seller_balance or seller_balance[0] < balance:
-            await ctx.send("⚠️ You do not have enough funds to purchase shares.")
+        if not seller_balance:
+            await ctx.send("⚠️ Seller company not found.")
+            return
+        
+        self.c.execute("SELECT shares FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?) AND company_name = ?", (seller_company, stock))
+        seller_shares = self.c.fetchone()
+        
+        if not seller_shares or seller_shares[0] < amount:
+            await ctx.send("⚠️ The seller company does not own enough shares to sell this amount.")
             return
         
         price_per_share = balance / total_shares if total_shares > 0 else 0
+        total_earnings = price_per_share * amount
         
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (balance, seller_company))
-        self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (balance, stock))
-        self.c.execute("UPDATE companies SET shares_available = shares_available + 1 WHERE name = ?", (stock,))
-        self.c.execute("UPDATE companies SET shares_available = shares_available - 1 WHERE name = ?", (seller_company,))
-        self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares - ?", (sender_id, stock, 1, 1))
+        if seller_balance[0] < total_earnings:
+            await ctx.send("⚠️ The seller company does not have enough funds to sell shares.")
+            return
+        
+        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (total_earnings, stock))
+        self.c.execute("UPDATE companies SET balance = balance + ? WHERE name = ?", (total_earnings, seller_company))
+        self.c.execute("UPDATE companies SET shares_available = shares_available + ? WHERE name = ?", (amount, stock))
+        self.c.execute("UPDATE ownership SET shares = shares - ? WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?) AND company_name = ?", (amount, seller_company, stock))
+        self.c.execute("DELETE FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?) AND company_name = ? AND shares = 0", (seller_company, stock))
         self.conn.commit()
         
-        embed = discord.Embed(title="📈 Shares Sold", color=discord.Color.green())
+        embed = discord.Embed(title="📉 Shares Sold", color=discord.Color.red())
         embed.add_field(name="Company", value=stock, inline=False)
         embed.add_field(name="Seller", value=seller_company, inline=False)
-        embed.add_field(name="Price per Share", value=f"${price_per_share:.2f}", inline=False)
-        await ctx.send
+        embed.add_field(name="Shares Sold", value=amount, inline=False)
+        embed.add_field(name="Total Earnings", value=f"${total_earnings:.2f}", inline=False)
+        await ctx.send(embed=embed)
         
     @commands.command(aliases=["co"])
     async def company_ownership(self, ctx, company_name: str):
