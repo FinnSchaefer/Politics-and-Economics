@@ -169,6 +169,8 @@ async def help(ctx):
         value=(
             "`help` → Display this message.\n"
             "`ping` → Pong!\n"
+            "`about @user` → Displays info on yourself or others.\n"
+            "`rp` → Assign the RP Ping role.\n"
         ),
         inline=False
     )
