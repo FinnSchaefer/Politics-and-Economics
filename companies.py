@@ -500,24 +500,21 @@ class Companies(commands.Cog):
         
     @commands.command(aliases=["co"])
     async def company_ownership(self, ctx, company_name: str):
-        """Shows all companies that own shares in a company."""
+        """Shows all shares that a company owns"""
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
         ownerships = self.c.fetchall()
         
         if not ownerships:
-            await ctx.send("📜 There are no companies that own shares in this company.")
+            await ctx.send("📜 No ownership data found for this company.")
             return
         
         embed = discord.Embed(title="📈 Company Ownership", color=discord.Color.blue())
         
         for owner_id, shares in ownerships:
-            owner = self.bot.get_user(owner_id)
+            user = self.bot.get_user(owner_id)
             embed.add_field(
-                name=f"🏢 {company_name}",
-                value=(
-                    f"👤 Owner: {owner.name if owner else f'User {owner_id}'}\n"
-                    f"📊 Shares Owned: {shares}"
-                ),
+                name=f"👤 {user.name if user else f'User {owner_id}'}",
+                value=f"📊 Shares Owned: {shares}",
                 inline=False
             )
         
