@@ -87,6 +87,7 @@ class Economy(commands.Cog):
                 await ctx.send("⚠️ You must bet on either a number or a color.")
                 return
             
+            
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
@@ -94,10 +95,14 @@ class Economy(commands.Cog):
                 return
             winning_number = random.randint(0, 36)
             if winning_number == number and number != 0:
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+                self.conn.commit()
                 winnings = amount * 35
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_number == number and number == 0:
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+                self.conn.commit()
                 winnings = amount * 100
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
@@ -112,10 +117,14 @@ class Economy(commands.Cog):
         elif color is not None:
             winning_color = random.choices(["red", "black", "green"], weights=[18, 18, 2], k=1)[0]
             if winning_color == color.lower() and winning_color != "green":
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+                self.conn.commit()
                 winnings = amount * 2
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_color == color.lower() and winning_color == "green":
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+                self.conn.commit()
                 winnings = amount * 10
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
