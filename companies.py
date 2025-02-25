@@ -88,7 +88,7 @@ class Companies(commands.Cog):
             if comp[3]:  # If the company is public
                 price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
                 emb.add_field(
-                    name=f"{i}. 🏢 {comp[0]}",
+                    name=f"🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -101,7 +101,7 @@ class Companies(commands.Cog):
                 )
             else:  # If the company is private
                 emb.add_field(
-                    name=f"{i}. 🏢 {comp[0]}",
+                    name=f"🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
