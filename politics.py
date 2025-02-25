@@ -341,6 +341,27 @@ class Politics(commands.Cog):
         
     @commands.command()
     @commands.has_role("RP Admin")
+    async def force_senator(self,ctx, user: discord.Member):   
+        """gets a users district and assigns them senator role"""
+        user_id = user.id
+
+        self.c.execute("SELECT district FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if not row:
+            await ctx.send("⚠️ User not found in the database.")
+            return
+
+        district = row[0]
+        await self.assign_senator(ctx, user_id, district)
+        embed = discord.Embed(
+            title="Senator Assigned",
+            description=f"📢 {user.mention} has been assigned as Senator of {district}!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+        
+    @commands.command()
+    @commands.has_role("RP Admin")
     async def force_district(self, ctx, user: discord.Member, district: str):
         """Forces a user to join a district."""
         user_id = user.id
