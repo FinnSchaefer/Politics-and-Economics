@@ -141,10 +141,6 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ You must bet on either a number or a color.")
             return
 
-        # Update user balance
-        self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
-        self.conn.commit()
-
         # Send result in an embed
         embed = discord.Embed(title="Roulette Result", color=discord.Color.green())
         embed.add_field(name="Result", value=result_message, inline=False)
