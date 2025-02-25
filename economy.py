@@ -57,7 +57,7 @@ class Economy(commands.Cog):
 
 
     @commands.command(alias=['rou'])
-    async def roulette(self, ctx, amount: float, number: int=None, color: str=None):
+    async def roulette(self, ctx, amount: float, color_number: str):
         """Play a game of roulette with your balance."""
         user_id = ctx.author.id
         # Fetch user balance
@@ -74,6 +74,18 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ You don't have enough balance to bet that amount.")
             return
 
+        # Parse the color and number
+        color_number = color_number.lower()
+        if color_number in ["red", "black", "green"]:
+            color = color_number
+            number = None
+        else:
+            try:
+                number = int(color_number)
+                color = None
+            except ValueError:
+                await ctx.send("⚠️ You must bet on either a number or a color.")
+            
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
@@ -93,12 +105,13 @@ class Economy(commands.Cog):
                 self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
                 self.conn.commit()
         elif color is not None:
-            if color.lower() not in ["red", "black"]:
-                await ctx.send("⚠️ The color must be 'red' or 'black'.")
-                return
-            winning_color = random.choice(["red", "black"])
-            if winning_color == color.lower():
+            winning_color = random.choice(["red", "black", "green"])
+            if winning_color == color.lower() and winning_color != "green":
                 winnings = amount * 2
+                new_balance = balance + winnings
+                result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
+            if winning_color == color.lower() and winning_color == "green":
+                winnings = amount * 10
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
