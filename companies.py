@@ -447,14 +447,17 @@ class Companies(commands.Cog):
             owned_stocks = self.c.fetchall()
             
             # Add the value of resources owned by the company to the total stock value
-            self.c.execute("SELECT resource_name, quantity FROM resources WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
-            resources = self.c.fetchall()
-            
-            for resource_name, quantity in resources:
-                self.c.execute("SELECT value_per_unit FROM resource_values WHERE resource_name = ?", (resource_name,))
-                resource_value = self.c.fetchone()
-                if resource_value:
-                    total_stock_value += quantity * resource_value[0]
+            try:
+                self.c.execute("SELECT resource_name, quantity FROM resources WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
+                resources = self.c.fetchall()
+                
+                for resource_name, quantity in resources:
+                    self.c.execute("SELECT value_per_unit FROM resource_values WHERE resource_name = ?", (resource_name,))
+                    resource_value = self.c.fetchone()
+                    if resource_value:
+                        total_stock_value += quantity * resource_value[0]
+            except sqlite3.OperationalError:
+                pass  # Table does not exist, skip this part
             
             for owned_company_name, shares in owned_stocks:
                 self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (owned_company_name,))
