@@ -97,6 +97,8 @@ class Resources(commands.Cog):
             return
         company_id = company_row[0]
 
+        print("here")
+            
         # Get the district assigned to the company
         self.c.execute("SELECT district FROM users WHERE id = (SELECT owner_id FROM companies WHERE company_id = ?)", (company_id,))
         district_row = self.c.fetchone()
@@ -104,6 +106,8 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ District not found for the company.")
             return
         district = district_row[0]
+
+        print("here2")
 
         # Get the current stockpile and price of the resource in the district
         self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
@@ -113,8 +117,9 @@ class Resources(commands.Cog):
             return
         stockpile, price_per_unit = resource_row
 
-        # Calculate the cost to harvest the resources
-        cost = (price_per_unit / 3) * (1.1 ** amount)
+        print("here3")
+
+        
         if stockpile < amount:
             embed = discord.Embed(title="⚠️ Not enough resources", color=discord.Color.red())
             embed.add_field(name="Available Stockpile", value=f"{stockpile} units", inline=True)
@@ -122,6 +127,20 @@ class Resources(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+        print("here4")
+        cost = 0
+        for i in range(amount):
+            cost += price_per_unit * (1 + 0.1 * i)
+        # Deduct the cost from the company's balance
+        if cost > (self.c.execute("SELECT balance FROM companies WHERE id = ?", (company_id,)).fetchone()[0]):
+            embed = discord.Embed(title="⚠️ Not enough balance", color=discord.Color.red())
+            embed.add_field(name="Available Balance", value=f"${self.c.execute('SELECT balance FROM companies WHERE id = ?', (company_id,)).fetchone()[0]:.2f}", inline=True)
+            embed.add_field(name="Required Amount", value=f"${cost:.2f}", inline=True)
+            await ctx.send(embed=embed)
+            return
+        
+        self.c.execute("UPDATE companies SET balance = balance - ? WHERE id = ?", (cost, company_id))
+  
         # Deduct the resources from the district stockpile and add to the company's stockpile
         self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
         self.c.execute("""
