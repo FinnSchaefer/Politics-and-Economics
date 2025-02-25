@@ -75,18 +75,19 @@ class Companies(commands.Cog):
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        embeds = []
-        for comp in companies:
-            self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
-            owner_id = self.c.fetchone()[0]
-            owner = self.bot.get_user(owner_id)
-            owner_name = owner.name if owner else f"User {owner_id}"
-            comp_val = await self.calc_stock_value(comp[0])
-            
-            embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
-            if comp[3]:  # If the company is public
-                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
-                embed.add_field(
+        async def get_page(page: int):
+            emb = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
+            offset = (page - 1) * 5
+            for comp in companies[offset:offset + 5]:
+                self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
+                owner_id = self.c.fetchone()[0]
+                owner = self.bot.get_user(owner_id)
+                owner_name = owner.name if owner else f"User {owner_id}"
+                comp_val = await self.calc_stock_value(comp[0])
+                
+                if comp[3]:  # If the company is public
+                    price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                    emb.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
@@ -97,22 +98,23 @@ class Companies(commands.Cog):
                     f"📈 Publicly Traded\n"
                     ),
                     inline=False
-                )
-            else:  # If the company is private
-                embed.add_field(
-                name=f"🏢 {comp[0]}",
-                value=(
-                f"👤 Owner: {owner_name}\n"
-                f"💰 Value: ${comp_val:,.2f}\n"
-                f"📊 Privately Held Shares: {comp[4]}\n"
-                f"🔒 Privately Owned\n"
-                ),
-                inline=False
-                )
-            embeds.append(embed)
-        
-        paginator = Pagination(self.bot, embeds)
-        await paginator.paginate(ctx)
+                    )
+                else:  # If the company is private
+                    emb.add_field(
+                    name=f"🏢 {comp[0]}",
+                    value=(
+                    f"👤 Owner: {owner_name}\n"
+                    f"💰 Value: ${comp_val:,.2f}\n"
+                    f"📊 Privately Held Shares: {comp[4]}\n"
+                    f"🔒 Privately Owned\n"
+                    ),
+                    inline=False
+                    )
+                n = Pagination.compute_total_pages(len(companies), 5)
+                emb.set_footer(text=f"Page {page} of {n}")
+            return emb, n
+
+        await Pagination(ctx, get_page).navigate()
     
     
     @commands.command()
