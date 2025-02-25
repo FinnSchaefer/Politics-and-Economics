@@ -85,6 +85,7 @@ class Economy(commands.Cog):
                 color = None
             except ValueError:
                 await ctx.send("⚠️ You must bet on either a number or a color.")
+                return
             
         # Calculate the result
         if number is not None:
@@ -110,7 +111,7 @@ class Economy(commands.Cog):
                 winnings = amount * 2
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
-            if winning_color == color.lower() and winning_color == "green":
+            elif winning_color == color.lower() and winning_color == "green":
                 winnings = amount * 10
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
