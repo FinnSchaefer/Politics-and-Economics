@@ -117,6 +117,7 @@ async def help(ctx, menu: str = None):
                 "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
                 "`mp [Party Name]` → Create a new political party.\n"
                 "`jp [Party Name]` → Join an existing political party.\n"
+                "`dp [Party Name]` → Delete a political party.\n"
                 "`pp` → Show all political parties.\n"
             ),
             inline=False
@@ -173,6 +174,7 @@ async def help(ctx, menu: str = None):
             name="🎰 **Gambling Commands**",
             value=(
                 "`rou [Amount] [Color or Number]` → Play roulette.\n"
+                "`slots [Amount]` → Play the slot machine.\n"
             ),
             inline=False
         )

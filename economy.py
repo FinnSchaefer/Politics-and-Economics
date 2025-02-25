@@ -155,6 +155,61 @@ class Economy(commands.Cog):
         embed = discord.Embed(title="Roulette Result", color=discord.Color.green())
         embed.add_field(name="Result", value=result_message, inline=False)
         await ctx.send(embed=embed)
+        
+    @commands.command()
+    async def slots(self, ctx, bet: float):
+        """Plays a game of slots."""
+        user_id = ctx.author.id
+        # Fetch user balance
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if not row:
+            await ctx.send("You need to join a district before playing slots.")
+            return
+        balance = row[0]
+        if bet <= 0:
+            await ctx.send("⚠️ You must bet a positive amount of money.")
+            return
+        if bet > balance:
+            await ctx.send("⚠️ You don't have enough balance to bet that amount.")
+            return
+
+        # Deduct the bet amount from the user's balance
+        self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - bet, user_id))
+        self.conn.commit()
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        balance = row[0]
+
+        # Slot machine logic
+        emojis = ["🍒", "🍋", "🍉", "🍇", "🍓", "⭐"]
+        slots = [random.choice(emojis) for _ in range(3)]
+        result_message = f"🎰 {' | '.join(slots)} 🎰\n"
+
+        if slots[0] == slots[1] == slots[2]:
+            winnings = bet * 10
+            new_balance = balance + winnings
+            self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+            self.conn.commit()
+            result_message += f"🎉 You won ${winnings}! Your new balance is ${new_balance:.2f}."
+        elif slots[0] == slots[1] or slots[1] == slots[2] or slots[0] == slots[2]:
+            winnings = bet * 2
+            new_balance = balance + winnings
+            self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+            self.conn.commit()
+            result_message += f"🎉 You won ${winnings}! Your new balance is ${new_balance:.2f}."
+        else:
+            result_message += f"😢 You lost ${bet}. Your new balance is ${balance:.2f}."
+            self.c.execute("SELECT government_balance FROM tax_rate")
+            government_balance = self.c.fetchone()[0]
+            new_government_balance = government_balance + bet
+            self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
+            self.conn.commit()
+
+        # Send result in an embed
+        embed = discord.Embed(title="Slots Result", color=discord.Color.green())
+        embed.add_field(name="Result", value=result_message, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['balgov','bg'])
     async def government_balance(self, ctx):

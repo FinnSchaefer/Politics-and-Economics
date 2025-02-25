@@ -1,7 +1,7 @@
 import discord
 import sqlite3
 import json
-import asyncio
+import random
 import datetime
 from discord.ext import commands, tasks
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -311,11 +311,33 @@ class Politics(commands.Cog):
         
     @commands.command()
     @commands.has_role("RP Admin")
-    async def stimulus(self, ctx, district: str, amount: float):
-        """Admin command to send stimulus to a district."""
-        self.c.execute("UPDATE users SET balance = balance + ? WHERE district = ?", (amount, district))
-        self.conn.commit()
-        await ctx.send(f"✅ **Stimulus Sent!** ${amount} has been distributed to all residents of **{district}**.")    
+    async def force_election_end(self, ctx):
+        """Forces the end of still running elections. If there is no winner, the bot randomly selects one."""
+        self.running = 0
+        self.c.execute("SELECT district FROM users WHERE senator = 0 GROUP BY district")
+        districts_without_senator = [row[0] for row in self.c.fetchall()]
+        
+        for district in districts_without_senator:
+            self.c.execute("SELECT user_id FROM users WHERE district = ?", (district,))
+            voters = [row[0] for row in self.c.fetchall()]
+            if voters:
+                self.c.execute("SELECT candidate, COUNT(candidate) as vote_count FROM elections WHERE district = ? GROUP BY candidate ORDER BY vote_count DESC", (district,))
+                results = self.c.fetchall()
+                
+                if results and results[0][1] > results[1][1]:
+                    winner_id = results[0][0]
+                else:
+                    winner_id = random.choice(voters)
+                
+                await self.assign_senator(ctx, winner_id, district)
+                embed = discord.Embed(
+                    title="Senator Election Result",
+                    description=f"📢 The election for Senator of {district} has ended! Congratulations to <@{winner_id}>!",
+                    color=discord.Color.green()
+                )
+                await ctx.send(embed=embed)
+                
+        await ctx.send("All elections have been forcefully ended.")
         
     @commands.command()
     @commands.has_role("RP Admin")
