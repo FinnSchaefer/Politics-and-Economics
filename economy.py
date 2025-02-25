@@ -56,7 +56,7 @@ class Economy(commands.Cog):
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
 
-    @commands.command(alias=['rou'])
+    @commands.command(aliases=['rou'])
     async def roulette(self, ctx, amount: float, color_number: str):
         """Play a game of roulette with your balance."""
         user_id = ctx.author.id
@@ -74,7 +74,6 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ You don't have enough balance to bet that amount.")
             return
 
-        print("made it here")
         # Parse the color and number
         color_number = color_number.lower()
         if color_number in ["red", "black", "green"]:
@@ -88,15 +87,18 @@ class Economy(commands.Cog):
                 await ctx.send("⚠️ You must bet on either a number or a color.")
                 return
             
-        print("made it here2")  
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
                 await ctx.send("⚠️ The number must be between 0 and 36.")
                 return
             winning_number = random.randint(0, 36)
-            if winning_number == number:
+            if winning_number == number and number != 0:
                 winnings = amount * 35
+                new_balance = balance + winnings
+                result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
+            elif winning_number == number and number == 0:
+                winnings = amount * 100
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
@@ -108,7 +110,7 @@ class Economy(commands.Cog):
                 self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
                 self.conn.commit()
         elif color is not None:
-            winning_color = random.choice(["red", "black", "green"])
+            winning_color = random.choices(["red", "black", "green"], weights=[18, 18, 2], k=1)[0]
             if winning_color == color.lower() and winning_color != "green":
                 winnings = amount * 2
                 new_balance = balance + winnings
