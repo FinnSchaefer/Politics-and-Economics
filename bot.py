@@ -96,7 +96,7 @@ async def rp(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="help")
-async def help(ctx):
+async def help(ctx, menu: str = None):
     """Displays a help message with all available commands."""
 
     embed = discord.Embed(
@@ -104,71 +104,84 @@ async def help(ctx):
         description="Welcome to The Republic of Severum: Political & Economic Simulation! Below is a list of commands to help you get started.",
         color=discord.Color.gold()
     )
+    if (menu=="p"):
+        # 🏛️ Politics Commands
+        embed.add_field(
+            name="🏛️ **Politics Commands**",
+            value=(
+                "`join [District]` → Join a district.\n"
+                "`propose_bill [Name] [Desc] [Link]` → Senator-only: Propose a law.\n"
+                "`bills` → View all proposed bills.\n"
+                "`laws` → See all passed laws.\n"
+                "`start_election` → Admin-only: Start elections.\n"
+                "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
+                "`mp [Party Name]` → Create a new political party.\n"
+                "`jp [Party Name]` → Join an existing political party.\n"
+                "`pp` → Show all political parties.\n"
+            ),
+            inline=False
+        )
 
-    # 🏛️ Politics Commands
-    embed.add_field(
-        name="🏛️ **Politics Commands**",
-        value=(
-            "`join [District]` → Join a district.\n"
-            "`propose_bill [Name] [Desc] [Link]` → Senator-only: Propose a law.\n"
-            "`bills` → View all proposed bills.\n"
-            "`laws` → See all passed laws.\n"
-            "`start_election` → Admin-only: Start elections.\n"
-            "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
-            "`mp [Party Name]` → Create a new political party.\n"
-            "`jp [Party Name]` → Join an existing political party.\n"
-            "`pp` → Show all political parties.\n"
-        ),
-        inline=False
-    )
-
+    if (menu == "e"):
     # 💰 Economy Commands
-    embed.add_field(
-        name="💰 **Economy Commands**",
-        value=(
-            "`balance` → Check your balance.\n"
-            "`bg` → Check the government's balance.\n"
-            "`send [User] [Amount]` → Transfer money.\n"
-            "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company to user.\n"
-            "`send2c [Company] [Amount]` → Transfer money to a company.\n"
-            "`stock_price [Company]` → Check a stock’s value.\n"
-            "`make_public [Company]` → List a company on the stock exchange.\n"
-            "`stock_ownership` → Check your stock ownership.\n"
-        ),
-        inline=False
-    )
+        embed.add_field(
+            name="💰 **Economy Commands**",
+            value=(
+                "`balance` → Check your balance.\n"
+                "`bg` → Check the government's balance.\n"
+                "`send [User] [Amount]` → Transfer money.\n"
+                "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company to user.\n"
+                "`send2c [Company] [Amount]` → Transfer money to a company.\n"
+                "`stock_price [Company]` → Check a stock’s value.\n"
+                "`make_public [Company]` → List a company on the stock exchange.\n"
+                "`stock_ownership` → Check your stock ownership.\n"
+            ),
+            inline=False
+        )
 
-    # 🏢 Company Commands
-    embed.add_field(
-        name="🏢 **Company Commands**",
-        value=(
-            "`companies` → View all registered companies.\n"
-            "`create_company [Name]` → Start a company.\n"
-            "`delete_company [Name]` → Close a company.\n"
-            "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
-            "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
-            "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
-            "`appoint_board_member [Company] @User` → Assign a board member.\n"
-        ),
-        inline=False
-    )
+    if (menu == "c"):
+        # 🏢 Company Commands
+        embed.add_field(
+            name="🏢 **Company Commands**",
+            value=(
+                "`companies` → View all registered companies.\n"
+                "`create_company [Name]` → Start a company.\n"
+                "`delete_company [Name]` → Close a company.\n"
+                "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
+                "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
+                "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
+                "`appoint_board_member [Company] @User` → Assign a board member.\n"
+            ),
+            inline=False
+        )
 
-    # 🗳️ Voting Commands
-    embed.add_field(
-        name="🗳️ **Voting Commands**",
-        value=(
-            "`vote_bill [Bill number] aye/nay` → Senator-only: Vote on legislation. Must be typed in #senate-voting.\n"
-            "`vote_senator [District] @user` → Elect your senator.\n"
-            "`vote_chancellor @user` → Senator-only: Elect the Chancellor. Must be typed in #senate-voting.\n"
-        ),
-        inline=False
-    )
+    if (menu == "v"):
+        # 🗳️ Voting Commands
+        embed.add_field(
+            name="🗳️ **Voting Commands**",
+            value=(
+                "`vote_bill [Bill number] aye/nay` → Senator-only: Vote on legislation. Must be typed in #senate-voting.\n"
+                "`vote_senator [District] @user` → Elect your senator.\n"
+                "`vote_chancellor @user` → Senator-only: Elect the Chancellor. Must be typed in #senate-voting.\n"
+            ),
+            inline=False
+        )
+
+    if (menu == "g"):
+        # 🎰 Gambling Commands
+        embed.add_field(
+            name="🎰 **Gambling Commands**",
+            value=(
+                "`rou [Amount] [Color or Number]` → Play roulette.\n"
+            ),
+            inline=False
+        )
 
     # 🔧 Other Commands
     embed.add_field(
         name="🔧 **Other Commands**",
         value=(
-            "`help` → Display this message.\n"
+            "`help [e,c,p,v,g]` → Economy, Company, Political, Voting, and Gambling help menus.\n"
             "`ping` → Pong!\n"
             "`about @user` → Displays info on yourself or others.\n"
             "`rp` → Assign the RP Ping role.\n"
