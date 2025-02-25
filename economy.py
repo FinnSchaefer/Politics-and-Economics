@@ -86,6 +86,7 @@ class Economy(commands.Cog):
             except ValueError:
                 await ctx.send("⚠️ You must bet on either a number or a color.")
                 return
+
             
         # Calculate the result
         if number is not None:
@@ -102,10 +103,14 @@ class Economy(commands.Cog):
             if winning_number == number and number != 0:
                 winnings = amount * 35
                 new_balance = balance + winnings
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_number == number and number == 0:
                 winnings = amount * 100
                 new_balance = balance + winnings
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
                 result_message = f"🎰 The ball landed on {winning_number}. You lost ${amount}! Your new balance is ${balance:.2f}."
@@ -124,12 +129,17 @@ class Economy(commands.Cog):
             if winning_color == color.lower() and winning_color != "green":
                 winnings = amount * 2
                 new_balance = balance + winnings
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_color == color.lower() and winning_color == "green":
                 winnings = amount * 10
                 new_balance = balance + winnings
+                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
+                new_balance = balance - amount
                 result_message = f"🎰 The ball landed on {winning_color}. You lost ${amount}! Your new balance is ${balance:.2f}."
                 # Add the lost amount to the government balance
                 self.c.execute("SELECT government_balance FROM tax_rate")
