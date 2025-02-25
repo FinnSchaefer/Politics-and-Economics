@@ -74,6 +74,7 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ You don't have enough balance to bet that amount.")
             return
 
+        print("made it here")
         # Parse the color and number
         color_number = color_number.lower()
         if color_number in ["red", "black", "green"]:
@@ -87,7 +88,7 @@ class Economy(commands.Cog):
                 await ctx.send("⚠️ You must bet on either a number or a color.")
                 return
             
-        print("made it here")  
+        print("made it here2")  
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
