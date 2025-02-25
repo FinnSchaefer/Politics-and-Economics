@@ -87,8 +87,6 @@ class Economy(commands.Cog):
                 await ctx.send("⚠️ You must bet on either a number or a color.")
                 return
             
-            
-            
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
