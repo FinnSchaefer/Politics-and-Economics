@@ -80,13 +80,14 @@ class Resources(commands.Cog):
     async def harvest_resource(self, ctx, company_name: str, amount: int):
         """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
         # Check if the company exists in the database
-        self.c.execute("SELECT district FROM companies WHERE name = ?", (company_name,))
+        self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (company_name,))
         result = self.c.fetchone()
         if not result:
             await ctx.send(f"⚠️ Company '{company_name}' does not exist.")
             return
 
-        district = result[0]
+        owner_id = result[0]
+        district = self.c.execute("SELECT district FROM users WHERE id = ?", (owner_id,))
 
         # Get the current stockpile and price of the resource
         self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
