@@ -70,7 +70,7 @@ class Resources(commands.Cog):
         """Shows all reosources by a company"""
         self.c.execute("SELECT * FROM company_resources WHERE company_id = ?", (company,))
         rows = self.c.fetchall()
-
+        
         if not rows:
             await ctx.send("⚠️ No resource data available.")
             return
@@ -78,6 +78,8 @@ class Resources(commands.Cog):
         embed = discord.Embed(title=f"🏢 {company}", color=discord.Color.green())
         for row in rows:
             company_id, district, resource, stockpile, price = row
+            self.c.execute("SELECT price_per_unit FROM resources WHERE district = ?", (district,))
+            price = self.c.fetchone()[0]
             embed.add_field(
                 value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
                 inline=False
