@@ -3,7 +3,6 @@ import sqlite3
 import json
 from discord.ext import commands
 import matplotlib.pyplot as plt
-from pagination import Pagination
 import io
 
 class Companies(commands.Cog):
@@ -66,7 +65,7 @@ class Companies(commands.Cog):
         await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
 
     @commands.command()
-    async def companies(self, ctx):
+    async def companies(self, ctx, page: int=1):
         """Lists all registered companies and the total outstanding shares."""
         self.c.execute("SELECT name, balance, shares_available, is_public, total_shares FROM companies")
         companies = self.c.fetchall()
@@ -75,20 +74,21 @@ class Companies(commands.Cog):
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        async def get_page(page: int):
-            emb = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
-            offset = (page - 1) * 5
-            for comp in companies[offset:offset + 5]:
-                self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
-                owner_id = self.c.fetchone()[0]
-                owner = self.bot.get_user(owner_id)
-                owner_name = owner.name if owner else f"User {owner_id}"
-                comp_val = await self.calc_stock_value(comp[0])
-                
-                if comp[3]:  # If the company is public
-                    price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
-                    emb.add_field(
-                    name=f"🏢 {comp[0]}",
+        items_per_page = 5
+        offset = (page - 1) * items_per_page
+        emb = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
+        
+        for i, comp in enumerate(companies[offset:offset + items_per_page], start=offset + 1):
+            self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
+            owner_id = self.c.fetchone()[0]
+            owner = self.bot.get_user(owner_id)
+            owner_name = owner.name if owner else f"User {owner_id}"
+            comp_val = await self.calc_stock_value(comp[0])
+            
+            if comp[3]:  # If the company is public
+                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                emb.add_field(
+                    name=f"{i}. 🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -98,10 +98,10 @@ class Companies(commands.Cog):
                     f"📈 Publicly Traded\n"
                     ),
                     inline=False
-                    )
-                else:  # If the company is private
-                    emb.add_field(
-                    name=f"🏢 {comp[0]}",
+                )
+            else:  # If the company is private
+                emb.add_field(
+                    name=f"{i}. 🏢 {comp[0]}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -109,12 +109,8 @@ class Companies(commands.Cog):
                     f"🔒 Privately Owned\n"
                     ),
                     inline=False
-                    )
-            n = Pagination.compute_total_pages(len(companies), 5)
-            emb.set_footer(text=f"Page {page} of {n}")
-            return emb, n
-
-        await Pagination(ctx, get_page).navigate()
+                )
+        await ctx.send(embed=emb)
     
     
     @commands.command()
