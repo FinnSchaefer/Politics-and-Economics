@@ -88,21 +88,24 @@ class Economy(commands.Cog):
                 return
             
             
+            
         # Calculate the result
         if number is not None:
             if number < 0 or number > 36:
                 await ctx.send("⚠️ The number must be between 0 and 36.")
                 return
+            # Deduct the bet amount from the user's balance
+            self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+            self.conn.commit()
+            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+            row = self.c.fetchone()
+            balance = row[0]
             winning_number = random.randint(0, 36)
             if winning_number == number and number != 0:
-                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
-                self.conn.commit()
                 winnings = amount * 35
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_number == number and number == 0:
-                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
-                self.conn.commit()
                 winnings = amount * 100
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
@@ -115,16 +118,17 @@ class Economy(commands.Cog):
                 self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
                 self.conn.commit()
         elif color is not None:
+            self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
+            self.conn.commit()
+            self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+            row = self.c.fetchone()
+            balance = row[0]
             winning_color = random.choices(["red", "black", "green"], weights=[18, 18, 2], k=1)[0]
             if winning_color == color.lower() and winning_color != "green":
-                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
-                self.conn.commit()
                 winnings = amount * 2
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_color == color.lower() and winning_color == "green":
-                self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (balance - amount, user_id))
-                self.conn.commit()
                 winnings = amount * 10
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
