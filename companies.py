@@ -1,7 +1,7 @@
 import discord
 import sqlite3
 import json
-from discord.ext import commands
+from discord.ext import commands, pages
 import matplotlib.pyplot as plt
 import io
 
@@ -83,33 +83,50 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             
-            if comp[3]:  # If the company is public
-                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
-                embed.add_field(
-                    name=f"🏢 {comp[0]}",
-                    value=(
-                    f"👤 Owner: {owner_name}\n"
-                    f"💰 Value: ${comp_val:,.2f}\n"
-                    f"📈 Price per Share: ${price_per_share:.2f}\n"
-                    f"📊 Total Shares: {comp[4]}\n"
-                    f"📊 Floating Shares: {comp[2]}\n"
-                    f"📈 Publicly Traded\n"
-                    ),
-                    inline=False
-                )
-            else:  # If the company is private
-                embed.add_field(
-                name=f"🏢 {comp[0]}",
-                value=(
-                f"👤 Owner: {owner_name}\n"
-                f"💰 Value: ${comp_val:,.2f}\n"
-                f"📊 Privately Held Shares: {comp[4]}\n"
-                f"🔒 Privately Owned\n"
-                ),
-                inline=False
-            )
+            embeds = []
+            embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
+            for i, comp in enumerate(companies):
+                self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
+                owner_id = self.c.fetchone()[0]
+                owner = self.bot.get_user(owner_id)
+                owner_name = owner.name if owner else f"User {owner_id}"
+                comp_val = await self.calc_stock_value(comp[0])
                 
-        await ctx.send(embed=embed)
+                if comp[3]:  # If the company is public
+                    price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                    embed.add_field(
+                        name=f"🏢 {comp[0]}",
+                        value=(
+                        f"👤 Owner: {owner_name}\n"
+                        f"💰 Value: ${comp_val:,.2f}\n"
+                        f"📈 Price per Share: ${price_per_share:.2f}\n"
+                        f"📊 Total Shares: {comp[4]}\n"
+                        f"📊 Floating Shares: {comp[2]}\n"
+                        f"📈 Publicly Traded\n"
+                        ),
+                        inline=False
+                    )
+                else:  # If the company is private
+                    embed.add_field(
+                        name=f"🏢 {comp[0]}",
+                        value=(
+                        f"👤 Owner: {owner_name}\n"
+                        f"💰 Value: ${comp_val:,.2f}\n"
+                        f"📊 Privately Held Shares: {comp[4]}\n"
+                        f"🔒 Privately Owned\n"
+                        ),
+                        inline=False
+                    )
+                    
+                if (i + 1) % 5 == 0:
+                    embeds.append(embed)
+                    embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
+            
+            if len(embed.fields) > 0:
+                embeds.append(embed)
+            
+        paginator = pages.Paginator(pages=embeds)
+        await paginator.send(ctx)
     
     
     @commands.command()
