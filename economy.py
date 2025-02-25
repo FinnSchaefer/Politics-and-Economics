@@ -108,8 +108,7 @@ class Economy(commands.Cog):
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
-                new_balance = balance - amount
-                result_message = f"🎰 The ball landed on {winning_number}. You lost ${amount}! Your new balance is ${new_balance:.2f}."
+                result_message = f"🎰 The ball landed on {winning_number}. You lost ${amount}! Your new balance is ${balance:.2f}."
                 self.c.execute("SELECT government_balance FROM tax_rate")
                 government_balance = self.c.fetchone()[0]
                 new_government_balance = government_balance + amount
@@ -131,8 +130,7 @@ class Economy(commands.Cog):
                 new_balance = balance + winnings
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
-                new_balance = balance - amount
-                result_message = f"🎰 The ball landed on {winning_color}. You lost ${amount}! Your new balance is ${new_balance:.2f}."
+                result_message = f"🎰 The ball landed on {winning_color}. You lost ${amount}! Your new balance is ${balance:.2f}."
                 # Add the lost amount to the government balance
                 self.c.execute("SELECT government_balance FROM tax_rate")
                 government_balance = self.c.fetchone()[0]
