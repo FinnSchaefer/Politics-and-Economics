@@ -46,6 +46,20 @@ class Resources(commands.Cog):
         self.conn.commit()
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def ensure_tables(self, ctx):
+        """Ensure resources and company_resources tables are set up."""
+        self.setup_resources()
+        await ctx.send("✅ Resources tables ensured.")
+
+    @commands.command()
+    async def print_company_r(self, ctx):
+        self.c.execute("SELECT * FROM company_resources")
+        rows = self.c.fetchall()
+        print(rows)
+        await ctx.send("Done")
+
+    @commands.command()
     async def check_resources(self, ctx):
         """Displays current resource stockpiles and prices."""
         self.c.execute("SELECT * FROM resources")
