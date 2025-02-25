@@ -27,6 +27,7 @@ class MyBot(commands.Bot):
             await self.load_extension("economy")
             await self.load_extension("politics")
             await self.load_extension("companies")
+            await self.load_extension("resources")
             print("Cogs loaded successfully.")
         except Exception as e:
             print(f"Error loading cogs: {e}")

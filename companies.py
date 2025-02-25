@@ -103,7 +103,7 @@ class Companies(commands.Cog):
                 value=(
                 f"👤 Owner: {owner_name}\n"
                 f"💰 Value: ${comp_val:,.2f}\n"
-                f"📊 Floating Shares: {comp[4]}\n"
+                f"📊 Privately Held Shares: {comp[4]}\n"
                 f"🔒 Privately Owned\n"
                 ),
                 inline=False
@@ -439,13 +439,23 @@ class Companies(commands.Cog):
         company = self.c.fetchone()
         if company:
             balance, total_shares = company
+            total_stock_value = 0
             price_per_share = balance / total_shares if total_shares > 0 else 0
             
             # Check if the company owns shares in other companies
             self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
             owned_stocks = self.c.fetchall()
             
-            total_stock_value = 0
+            # Add the value of resources owned by the company to the total stock value
+            self.c.execute("SELECT resource_name, quantity FROM resources WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
+            resources = self.c.fetchall()
+            
+            for resource_name, quantity in resources:
+                self.c.execute("SELECT value_per_unit FROM resource_values WHERE resource_name = ?", (resource_name,))
+                resource_value = self.c.fetchone()
+                if resource_value:
+                    total_stock_value += quantity * resource_value[0]
+            
             for owned_company_name, shares in owned_stocks:
                 self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (owned_company_name,))
                 owned_company = self.c.fetchone()
@@ -457,8 +467,6 @@ class Companies(commands.Cog):
             return balance + total_stock_value
         return 0
         
-    
-
     @commands.command(aliases=["cbs"])
     async def company_buy_shares(self, ctx, purchaser_company: str, stock: str, amount: int):
         """Allows companies to buy shares in another company."""

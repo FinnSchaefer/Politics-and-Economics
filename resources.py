@@ -57,50 +57,108 @@ class Resources(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    async def company_owned_resources(self, ctx, company: str):
+        """Shows all reosources by the company"""
+        self.c.execute("SELECT district, resource, stockpile, price_per_unit FROM resources WHERE district IN (SELECT district FROM companies WHERE name = ?)", (company,))
+        rows = self.c.fetchall()
+
+        if not rows:
+            await ctx.send(f"⚠️ No resources found for company '{company}'.")
+            return
+
+        embed = discord.Embed(title=f"🏢 **{company}'s Owned Resources**", color=discord.Color.blue())
+        for row in rows:
+            district, resource, stockpile, price = row
+            embed.add_field(
+            name=f"🏙️ {district}",
+            value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
+            inline=False
+            )
+        await ctx.send(embed=embed)
+
+    @commands.command()
     async def harvest_resource(self, ctx, company_name: str, amount: int):
-        """Allows a company to harvest resources from its assigned district at a cost."""
-        if amount <= 0:
-            await ctx.send("⚠️ You must harvest a positive amount of resources.")
+        """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
+        # Check if the company exists in the database
+        self.c.execute("SELECT district FROM companies WHERE name = ?", (company_name,))
+        result = self.c.fetchone()
+        if not result:
+            await ctx.send(f"⚠️ Company '{company_name}' does not exist.")
             return
 
-        user_id = ctx.author.id
-        self.c.execute("SELECT district FROM companies WHERE name = ? AND owner_id = ?", (company_name, user_id))
-        company_info = self.c.fetchone()
+        district = result[0]
 
-        if not company_info:
-            await ctx.send("⚠️ You do not own this company or it does not exist.")
+        # Get the current stockpile and price of the resource
+        self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
+        resource_data = self.c.fetchone()
+        if not resource_data:
+            await ctx.send(f"⚠️ No resources found for district '{district}'.")
             return
 
-        district = company_info[0]
-        self.c.execute("SELECT resource, stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
-        resource_info = self.c.fetchone()
+        stockpile, price_per_unit = resource_data
 
-        if not resource_info:
-            await ctx.send("⚠️ No resources available in this district.")
+        if amount > stockpile:
+            await ctx.send(f"⚠️ Not enough resources in stockpile. Available: {stockpile}")
             return
 
-        resource, stockpile, price_per_unit = resource_info
-        cost = price_per_unit * amount
+        # Calculate the cost using an exponential formula
+        cost = sum(price_per_unit * (1/3) * (1.1 ** i) for i in range(amount))
 
-        # Ensure company has enough funds
-        self.c.execute("SELECT balance FROM companies WHERE name = ?", (company_name,))
-        company_balance = self.c.fetchone()
-        if not company_balance or company_balance[0] < cost:
-            await ctx.send("⚠️ Your company does not have enough funds to harvest these resources.")
-            return
-
-        # Ensure enough stockpile is available
-        if stockpile < amount:
-            await ctx.send("⚠️ Not enough resources available for harvesting.")
-            return
-
-        # Deduct funds from the company, update stockpile
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE name = ?", (cost, company_name))
-        self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
+        # Deduct the resources from the stockpile
+        new_stockpile = stockpile - amount
+        self.c.execute("UPDATE resources SET stockpile = ? WHERE district = ?", (new_stockpile, district))
         self.conn.commit()
 
-        await ctx.send(f"✅ **{company_name}** has harvested **{amount} {resource}** for **${cost:.2f}**.")
+        embed = discord.Embed(title="✅ Harvest Successful", color=discord.Color.blue())
+        embed.add_field(name="Company", value=company_name, inline=True)
+        embed.add_field(name="District", value=district, inline=True)
+        embed.add_field(name="Amount Harvested", value=f"{amount} units", inline=True)
+        embed.add_field(name="Total Cost", value=f"${cost:.2f}", inline=True)
+        embed.add_field(name="New Stockpile", value=f"{new_stockpile} units", inline=True)
+        await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def sell_resources(self, ctx, company: str, resource: str, amount: int):
+        """Sells an amount of a given resource that the company owns"""
+        # Check if the company exists in the database
+        self.c.execute("SELECT district FROM companies WHERE name = ?", (company,))
+        result = self.c.fetchone()
+        if not result:
+            await ctx.send(f"⚠️ Company '{company}' does not exist.")
+            return
 
+        district = result[0]
+
+        # Get the current stockpile and price of the resource
+        self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ? AND resource = ?", (district, resource))
+        resource_data = self.c.fetchone()
+        if not resource_data:
+            await ctx.send(f"⚠️ No resources found for district '{district}' with resource '{resource}'.")
+            return
+
+        stockpile, price_per_unit = resource_data
+
+        if amount > stockpile:
+            await ctx.send(f"⚠️ Not enough resources in stockpile. Available: {stockpile}")
+            return
+
+        # Calculate the total sale value
+        total_value = amount * price_per_unit
+
+        # Deduct the resources from the stockpile
+        new_stockpile = stockpile - amount
+        self.c.execute("UPDATE resources SET stockpile = ? WHERE district = ?", (new_stockpile, district))
+        self.conn.commit()
+
+        embed = discord.Embed(title="✅ Sale Successful", color=discord.Color.green())
+        embed.add_field(name="Company", value=company, inline=True)
+        embed.add_field(name="District", value=district, inline=True)
+        embed.add_field(name="Resource", value=resource, inline=True)
+        embed.add_field(name="Amount Sold", value=f"{amount} units", inline=True)
+        embed.add_field(name="Total Value", value=f"${total_value:.2f}", inline=True)
+        embed.add_field(name="New Stockpile", value=f"{new_stockpile} units", inline=True)
+        await ctx.send(embed=embed)
+        
     @tasks.loop(hours=24)
     async def update_prices(self):
         """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
