@@ -110,8 +110,8 @@ class Companies(commands.Cog):
                     ),
                     inline=False
                     )
-                n = Pagination.compute_total_pages(len(companies), 5)
-                emb.set_footer(text=f"Page {page} of {n}")
+            n = Pagination.compute_total_pages(len(companies), 5)
+            emb.set_footer(text=f"Page {page} of {n}")
             return emb, n
 
         await Pagination(ctx, get_page).navigate()
