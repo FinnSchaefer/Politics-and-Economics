@@ -3,6 +3,7 @@ import sqlite3
 import json
 from discord.ext import commands
 import matplotlib.pyplot as plt
+from pagination import Pagination
 import io
 
 class Companies(commands.Cog):
@@ -74,8 +75,7 @@ class Companies(commands.Cog):
             await ctx.send("📜 There are currently no registered companies.")
             return
 
-        embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
-        
+        embeds = []
         for comp in companies:
             self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
             owner_id = self.c.fetchone()[0]
@@ -83,6 +83,7 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             
+            embed = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
             if comp[3]:  # If the company is public
                 price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
                 embed.add_field(
@@ -107,9 +108,11 @@ class Companies(commands.Cog):
                 f"🔒 Privately Owned\n"
                 ),
                 inline=False
-            )
-            
-        await ctx.send(embed=embed)
+                )
+            embeds.append(embed)
+        
+        paginator = Pagination(self.bot, embeds)
+        await paginator.paginate(ctx)
     
     
     @commands.command()
