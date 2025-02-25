@@ -549,14 +549,14 @@ class Politics(commands.Cog):
         voter_id = ctx.author.id
         elections_announcements = self.bot.get_channel(1342194754921828465)
         
-        if self.running == 0:
-            embed = discord.Embed(
-                title="Chancellor Election",
-                description=f"{ctx.author.mention}, there are no elections currently running.",
-                color=discord.Color.red()
-            )
-            await ctx.send(embed=embed)
-            return
+        # if self.running == 0:
+        #     embed = discord.Embed(
+        #         title="Chancellor Election",
+        #         description=f"{ctx.author.mention}, there are no elections currently running.",
+        #         color=discord.Color.red()
+        #     )
+        #     await ctx.send(embed=embed)
+        #     return
 
         self.c.execute("SELECT vote_chancellor FROM users WHERE user_id = ?", (voter_id,))
         row = self.c.fetchone()
