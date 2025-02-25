@@ -1,5 +1,6 @@
 import discord
 import sqlite3
+import random
 from discord.ext import commands
 
 class Economy(commands.Cog):
@@ -53,6 +54,74 @@ class Economy(commands.Cog):
             await ctx.send(embed=embed)
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
+
+
+    @commands.command(alias=['rou'])
+    async def roulette(self, ctx, amount: float, number: int=None, color: str=None):
+        """Play a game of roulette with your balance."""
+        user_id = ctx.author.id
+        # Fetch user balance
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if not row:
+            await ctx.send("You need to join a district before playing roulette.")
+            return
+        balance = row[0]
+        if amount <= 0:
+            await ctx.send("⚠️ You must bet a positive amount of money.")
+            return
+        if amount > balance:
+            await ctx.send("⚠️ You don't have enough balance to bet that amount.")
+            return
+
+        # Calculate the result
+        if number is not None:
+            if number < 0 or number > 36:
+                await ctx.send("⚠️ The number must be between 0 and 36.")
+                return
+            winning_number = random.randint(0, 36)
+            if winning_number == number:
+                winnings = amount * 35
+                new_balance = balance + winnings
+                result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
+            else:
+                new_balance = balance - amount
+                result_message = f"🎰 The ball landed on {winning_number}. You lost ${amount}! Your new balance is ${new_balance:.2f}."
+                self.c.execute("SELECT government_balance FROM tax_rate")
+                government_balance = self.c.fetchone()[0]
+                new_government_balance = government_balance + amount
+                self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
+                self.conn.commit()
+        elif color is not None:
+            if color.lower() not in ["red", "black"]:
+                await ctx.send("⚠️ The color must be 'red' or 'black'.")
+                return
+            winning_color = random.choice(["red", "black"])
+            if winning_color == color.lower():
+                winnings = amount * 2
+                new_balance = balance + winnings
+                result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
+            else:
+                new_balance = balance - amount
+                result_message = f"🎰 The ball landed on {winning_color}. You lost ${amount}! Your new balance is ${new_balance:.2f}."
+                # Add the lost amount to the government balance
+                self.c.execute("SELECT government_balance FROM tax_rate")
+                government_balance = self.c.fetchone()[0]
+                new_government_balance = government_balance + amount
+                self.c.execute("UPDATE tax_rate SET government_balance = ?", (new_government_balance,))
+                self.conn.commit()
+        else:
+            await ctx.send("⚠️ You must bet on either a number or a color.")
+            return
+
+        # Update user balance
+        self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+        self.conn.commit()
+
+        # Send result in an embed
+        embed = discord.Embed(title="Roulette Result", color=discord.Color.green())
+        embed.add_field(name="Result", value=result_message, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['balgov','bg'])
     async def government_balance(self, ctx):

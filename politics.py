@@ -648,6 +648,32 @@ class Politics(commands.Cog):
             )
             await channel.send(embed=embed) 
 
+    @commands.command(aliases=["dp"])
+    async def delete_party(self, ctx, party: str):
+        """Deletes a party and removes all members from it."""
+        user_id = ctx.author.id
+
+        # Check if the user is the owner of the party
+        self.c.execute("SELECT party_head FROM parties WHERE party = ?", (party,))
+        row = self.c.fetchone()
+        if not row:
+            await ctx.send(f"⚠️ Party **{party}** does not exist.")
+            return
+
+        if row[0] != user_id:
+            await ctx.send(f"⚠️ {ctx.author.mention}, only the party owner can delete the party.")
+            return
+
+        self.c.execute("DELETE FROM parties WHERE party = ?", (party,))
+        self.c.execute("UPDATE users SET party = NULL WHERE party = ?", (party,))
+        self.conn.commit()
+        embed = discord.Embed(
+            title="Party Deleted",
+            description=f"✅ Party **{party}** has been deleted.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+
     async def assign_senator(self, ctx, user_id, district):
         """Assigns the senator role to the election winner and ensures the database schema is correct."""
         
