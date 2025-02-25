@@ -145,7 +145,7 @@ async def help(ctx, menu: str = None):
         embed.add_field(
             name="🏢 **Company Commands**",
             value=(
-                "`companies` → View all registered companies.\n"
+                "`companies [Page number]` → View all registered companies.\n"
                 "`create_company [Name]` → Start a company.\n"
                 "`delete_company [Name]` → Close a company.\n"
                 "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
