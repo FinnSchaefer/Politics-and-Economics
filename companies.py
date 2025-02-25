@@ -1,7 +1,8 @@
 import discord
 import sqlite3
 import json
-from discord.ext import commands, pages
+from discord.ext import commands
+from discord.ext import pages
 import matplotlib.pyplot as plt
 import io
 
