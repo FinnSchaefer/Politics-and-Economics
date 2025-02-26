@@ -49,14 +49,23 @@ class Resources(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def ensure_tables(self, ctx):
         self.setup_resources()
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS company_resources (
+            company_id INTEGER DEFAULT 0,
+            district TEXT,
+            resource TEXT,
+            stockpile INTEGER DEFAULT 0,
+            FOREIGN KEY (company_id) REFERENCES companies (id)
+        )
+        """)
+        self.conn.commit()
         await ctx.send("✅ Tables ensured and initialized.")
 
     @commands.command()
     async def print_company_r(self, ctx):
         self.c.execute("SELECT * FROM company_resources")
         rows = self.c.fetchall()
-        print(rows)
-        await ctx.send("Done")
+        await ctx.send(rows)
 
     @commands.command()
     async def check_resources(self, ctx):
