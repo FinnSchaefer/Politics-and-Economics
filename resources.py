@@ -66,6 +66,22 @@ class Resources(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    async def reset_company_owned(self,ctx):
+        self.c.execute("DELETE FROM company_resources")
+        self.c.execute("UPDATE resources SET stockpile = 100000")
+        self.c.conn.commit()
+        self.c.execute("""
+        CREATE TABLE IF NOT EXISTS company_resources (
+            comp_id INTEGER DEFAULT 0,
+            district TEXT,
+            resource TEXT,
+            stockpile INTEGER DEFAULT 0,
+            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
+        )
+        """)
+        await ctx.send("✅ Company resources reset.")
+
+    @commands.command()
     async def company_owned_resources(self, ctx, company: str):
         """Shows all reosources by a company"""
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
