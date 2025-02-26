@@ -107,7 +107,8 @@ class Resources(commands.Cog):
             return
         owner_id = owner_row[0]
 
-        self.c.execute("SELECT district FROM users WHERE id = ?", (owner_id,))
+
+        self.c.execute("SELECT district FROM users WHERE user_id = ?", (owner_id,))
         district_row = self.c.fetchone()
         if not district_row:
             await ctx.send("⚠️ District not found for the company.")
