@@ -45,7 +45,7 @@ class Resources(commands.Cog):
             self.c.execute("INSERT OR IGNORE INTO resources (district, resource) VALUES (?, ?)", (district, resource))
         self.conn.commit()
 
-    @commands.command()
+    @commands.command(aliases=["cr"])
     async def check_resources(self, ctx):
         """Displays current resource stockpiles and prices."""
         self.c.execute("SELECT * FROM resources")
@@ -65,24 +65,7 @@ class Resources(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def reset_company_owned(self,ctx):
-        self.c.execute("DELETE FROM company_resources")
-        self.c.execute("UPDATE resources SET stockpile = 100000")
-        self.conn.commit()
-        self.c.execute("""
-        CREATE TABLE IF NOT EXISTS company_resources (
-            comp_id INTEGER DEFAULT 0,
-            district TEXT,
-            resource TEXT,
-            stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
-        )
-        """)
-        self.conn.commit()
-        await ctx.send("✅ Company resources reset.")
-
-    @commands.command()
+    @commands.command(aliases=["cor"])
     async def company_owned_resources(self, ctx, company: str):
         """Shows all reosources by a company"""
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
@@ -115,7 +98,7 @@ class Resources(commands.Cog):
             )
         await ctx.send(embed=embed)
         
-    @commands.command()
+    @commands.command(aliases=["harvest"])
     async def harvest_resource(self, ctx, company_name: str, amount: int):
         """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
         # Get the company ID from the company name

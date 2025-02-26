@@ -178,12 +178,24 @@ async def help(ctx, menu: str = None):
             ),
             inline=False
         )
+        
+    if menu == "r":
+        #resource commands
+        embed.add_field(
+            name="🌿 **Resource Commands**",
+            value=(
+            "`harvest [Company] [Resource]` → Mine a resource.\n"
+            "`cr` → Check current resource price and amounts left to harvest.\n"
+            "`cor [Company]` → Trade resources with another user.\n"
+            ),
+            inline=False
+        )
 
     # 🔧 Other Commands
     embed.add_field(
         name="🔧 **Other Commands**",
         value=(
-            "`help [e,c,p,v,g]` → Economy, Company, Political, Voting, and Gambling help menus.\n"
+            "`help [c, e, g, p, r, v]` → Company, Economy, Gambling, Political, Resource, and Voting help menus.\n"
             "`ping` → Pong!\n"
             "`about @user` → Displays info on yourself or others.\n"
             "`rp` → Assign the RP Ping role.\n"
