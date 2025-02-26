@@ -448,7 +448,6 @@ class Companies(commands.Cog):
         if company:
             balance, total_shares = company
             total_stock_value = 0
-            price_per_share = balance / total_shares if total_shares > 0 else 0
             
             # Check if the company owns shares in other companies
             self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
