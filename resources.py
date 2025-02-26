@@ -109,7 +109,7 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Company not found.")
             return
         company_id = company_row[0]
-
+        
         # Get the district assigned to the company
         self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (company_id,))
         owner_row = self.c.fetchone()
@@ -187,6 +187,13 @@ class Resources(commands.Cog):
 
         self.conn.commit()
         print("🔄 Resource prices updated!")
+        
+    @commands.error()
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(f"⏰ You are on cooldown. Try again in {error.retry_after:.0f} seconds.")
+        else:
+            await ctx.send(f"⚠️ An error occurred: {error}")
 
 async def setup(bot):
     await bot.add_cog(Resources(bot))
