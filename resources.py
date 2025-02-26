@@ -27,7 +27,7 @@ class Resources(commands.Cog):
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (comp_id) REFERENCES companies(company_id)
+            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
         self.conn.commit()
@@ -48,7 +48,6 @@ class Resources(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def ensure_tables(self, ctx):
-        self.setup_resources()
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS company_resources (
             comp_id INTEGER DEFAULT 0,
