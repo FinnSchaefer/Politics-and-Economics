@@ -191,7 +191,8 @@ class Resources(commands.Cog):
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"⏰ You are on cooldown. Try again in {error.retry_after:.0f} seconds.")
+            minutes, seconds = divmod(error.retry_after, 60)
+            await ctx.send(f"⏰ You are on cooldown. Try again in {minutes:.0f} minutes and {seconds:.0f} seconds.")
         else:
             await ctx.send(f"⚠️ An error occurred: {error}")
 
