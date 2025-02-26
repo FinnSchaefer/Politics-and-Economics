@@ -23,11 +23,11 @@ class Resources(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS company_resources (
-            company_id INTEGER DEFAULT 0,
+            comp_id INTEGER DEFAULT 0,
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (company_id) REFERENCES companies (company_id)
+            FOREIGN KEY (comp_id) REFERENCES companies(company_id)
         )
         """)
         self.conn.commit()
@@ -51,11 +51,11 @@ class Resources(commands.Cog):
         self.setup_resources()
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS company_resources (
-            company_id INTEGER DEFAULT 0,
+            comp_id INTEGER DEFAULT 0,
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (company_id) REFERENCES companies (id)
+            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
         self.conn.commit()
