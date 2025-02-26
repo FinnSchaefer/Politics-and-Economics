@@ -48,8 +48,9 @@ class Resources(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def ensure_tables(self, ctx):
+        self.c.execute("DROP TABLE IF EXISTS company_resources")
         self.c.execute("""
-        CREATE TABLE IF NOT EXISTS company_resources (
+        CREATE TABLE company_resources (
             comp_id INTEGER DEFAULT 0,
             district TEXT,
             resource TEXT,
