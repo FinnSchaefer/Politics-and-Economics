@@ -161,7 +161,7 @@ class Resources(commands.Cog):
         if company_stockpile:
             self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND district = ?", (amount, company_id, district))
         else:
-            self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile) VALUES (?, ?, ?)", (company_id, resource, amount))
+            self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile, district) VALUES (?, ?, ?)", (company_id, resource, amount, district))
         self.conn.commit()
         embed = discord.Embed(title="✅ Resource Harvested", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=True)
