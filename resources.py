@@ -79,7 +79,7 @@ class Resources(commands.Cog):
         rows = self.c.fetchall()
         
         if not rows:
-            await ctx.send("⚠️ No resource data available.")
+            await ctx.send("⚠️ No resource data available for this company.")
             return
 
         embed = discord.Embed(title=f"🏢 {company}", color=discord.Color.green())
@@ -120,6 +120,14 @@ class Resources(commands.Cog):
             return
         district = district_row[0]
 
+        # Get the resource assigned to the district
+        self.c.execute("SELECT resource FROM resources WHERE district = ?", (district,))
+        resource_row = self.c.fetchone()
+        if not resource_row:
+            await ctx.send("⚠️ Resource not found in the district.")
+            return
+        resource = resource_row[0]
+
         # Get the current stockpile and price of the resource in the district
         self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
         resource_row = self.c.fetchone()
@@ -148,8 +156,12 @@ class Resources(commands.Cog):
   
         # Deduct the resources from the district stockpile and add to the company's stockpile
         self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
-        self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND district = ?", (amount, company_id, district))
-        print("here6")
+        self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        company_stockpile = self.c.fetchone()
+        if company_stockpile:
+            self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND district = ?", (amount, company_id, resource))
+        else:
+            self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile) VALUES (?, ?, ?)", (company_id, resource, amount))
         self.conn.commit()
         embed = discord.Embed(title="✅ Resource Harvested", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=True)
