@@ -88,7 +88,10 @@ class Companies(commands.Cog):
             
             
             if comp[3]:  # If the company is public
-                price_per_share = (comp_val / comp[2]) if (comp[2] > 0 and comp_val > 0 )else 0
+                if comp_val > 0:
+                    price_per_share = comp_val / comp[4]
+                else:
+                    price_per_share = 0
                 emb.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
