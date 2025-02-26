@@ -90,7 +90,6 @@ class Resources(commands.Cog):
     async def harvest_resource(self, ctx, company_name: str, amount: int):
         """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
         # Get the company ID from the company name
-        print("here")
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company_name,))
         company_row = self.c.fetchone()
         if not company_row:
@@ -99,7 +98,7 @@ class Resources(commands.Cog):
         company_id = company_row[0]
 
         print("here")
-            
+        print(company_id)
         # Get the district assigned to the company
         self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (company_id,))
         owner_row = self.c.fetchone()
