@@ -23,7 +23,7 @@ class Resources(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS company_resources (
-            company_id INTEGER,
+            company_id INTEGER DEFAULT 0,
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
@@ -48,9 +48,8 @@ class Resources(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def ensure_tables(self, ctx):
-        """Ensure resources and company_resources tables are set up."""
         self.setup_resources()
-        await ctx.send("✅ Resources tables ensured.")
+        await ctx.send("✅ Tables ensured and initialized.")
 
     @commands.command()
     async def print_company_r(self, ctx):
