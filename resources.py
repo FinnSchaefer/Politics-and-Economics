@@ -84,9 +84,13 @@ class Resources(commands.Cog):
 
         embed = discord.Embed(title=f"🏢 {company}", color=discord.Color.green())
         for row in rows:
-            comp_id, district, resource, stockpile = row
+            _, district, resource, stockpile = row
             self.c.execute("SELECT price_per_unit FROM resources WHERE district = ?", (district,))
-            price = self.c.fetchone()[0]
+            price_row = self.c.fetchone()
+            if not price_row:
+                await ctx.send(f"⚠️ Price not found for district {district}.")
+                return
+            price = price_row[0]
             embed.add_field(
             name=f"🏙️ {district}",
             value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
