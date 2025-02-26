@@ -69,7 +69,7 @@ class Resources(commands.Cog):
     async def reset_company_owned(self,ctx):
         self.c.execute("DELETE FROM company_resources")
         self.c.execute("UPDATE resources SET stockpile = 100000")
-        self.c.conn.commit()
+        self.conn.commit()
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS company_resources (
             comp_id INTEGER DEFAULT 0,
@@ -79,6 +79,7 @@ class Resources(commands.Cog):
             FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
+        self.conn.commit()
         await ctx.send("✅ Company resources reset.")
 
     @commands.command()
