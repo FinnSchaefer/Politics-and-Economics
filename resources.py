@@ -161,8 +161,8 @@ class Resources(commands.Cog):
         print("here5")
         self.c.execute("""
         INSERT INTO company_resources (comp_id, district, resource, stockpile) VALUES (?, ?, (SELECT resource FROM resources WHERE district = ?), ?) 
-        ON CONFLICT(comp_id, district, resource) DO UPDATE SET stockpile = stockpile + ?
-        """, (company_id, district, district, amount, amount))
+        ON CONFLICT(comp_id, district, resource) DO UPDATE SET stockpile = company_resources.stockpile + excluded.stockpile
+        """, (company_id, district, district, amount))
 
         self.conn.commit()
         embed = discord.Embed(title="✅ Resource Harvested", color=discord.Color.green())
