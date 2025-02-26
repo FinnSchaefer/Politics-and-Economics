@@ -146,7 +146,7 @@ class Resources(commands.Cog):
         print("here4")
         cost = price_per_unit * amount * (1 + 0.1 * (amount - 1) / 2)
         # Deduct the cost from the company's balance
-        if cost > (self.c.execute("SELECT balance FROM companies WHERE id = ?", (company_id,)).fetchone()[0]):
+        if cost > (self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (company_id,)).fetchone()[0]):
             embed = discord.Embed(title="⚠️ Not enough balance", color=discord.Color.red())
             embed.add_field(name="Available Balance", value=f"${self.c.execute('SELECT balance FROM companies WHERE id = ?', (company_id,)).fetchone()[0]:.2f}", inline=True)
             embed.add_field(name="Required Amount", value=f"${cost:.2f}", inline=True)
