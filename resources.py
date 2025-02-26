@@ -73,9 +73,9 @@ class Resources(commands.Cog):
         if not company_row:
             await ctx.send("⚠️ Company not found.")
             return
-        company = company_row[0]
+        company_id = company_row[0]
         
-        self.c.execute("SELECT * FROM company_resources WHERE comp_id = ?", (company,))
+        self.c.execute("SELECT * FROM company_resources WHERE comp_id = ?", (company_id,))
         rows = self.c.fetchall()
         
         if not rows:
