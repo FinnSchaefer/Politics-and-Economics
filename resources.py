@@ -182,7 +182,7 @@ class Resources(commands.Cog):
 
         for district, price in rows:
             fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -40% to +20%
-            new_price = max(10, price * (1 + fluctuation))  # Ensure price never drops below $5
+            new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
             self.c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
 
         self.conn.commit()
