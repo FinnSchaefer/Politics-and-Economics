@@ -587,7 +587,7 @@ class Politics(commands.Cog):
         self.c.execute("SELECT chancellor_vote, COUNT(chancellor_vote) as vote_count FROM elections WHERE chancellor_vote != 0 GROUP BY chancellor_vote ORDER BY vote_count DESC")
         results = self.c.fetchall()
 
-        if results and (results[0][1] > 13 / 2 or total_votes == 13):
+        if results and (results[0][1] > 5 / 2 or total_votes == 5):
             winner_id = results[0][0]
             chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
             winner = ctx.guild.get_member(winner_id)
@@ -603,6 +603,24 @@ class Politics(commands.Cog):
             else:
                 await ctx.send("⚠️ Chancellor role or winner not found.")
 
+
+    @commands.command()
+    async def force_chancellor(self,ctx, user: discord.Member):
+        """Forces a user to become the Chancellor."""
+        user_id = user.id
+        chancellor_role = discord.utils.get(ctx.guild.roles, name="Chancellor")
+        self.c.execute("UPDATE users SET chancellor = 1 WHERE user_id = ?", (user_id,))
+        self.conn.commit()
+        if chancellor_role:
+            await user.add_roles(chancellor_role)
+            embed = discord.Embed(
+                title="Chancellor Assigned",
+                description=f"📢 {user.mention} has been assigned as Chancellor!",
+                color=discord.Color.green()
+            )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("⚠️ Chancellor role not found.")
 
     @commands.command()
     async def vote_senator(self, ctx, candidate: discord.Member):
