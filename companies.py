@@ -84,8 +84,6 @@ class Companies(commands.Cog):
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
-            print(comp_val)
-            
             
             if comp[3]:  # If the company is public
                 if comp_val > 0:
