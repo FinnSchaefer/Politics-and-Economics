@@ -151,6 +151,9 @@ async def help(ctx, menu: str = None):
                 "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
                 "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
                 "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
+                "`is [Company] [Amount]` → Issues an amount of stock.\n"
+                "`cbs [Company Buying] [Stock] [Amount]` → Buy a company owned stock.\n"
+                "`css [Company Selling] [Stock] [Amount]` → Sell a company owned stock..\n"
                 "`appoint_board_member [Company] @User` → Assign a board member.\n"
             ),
             inline=False
