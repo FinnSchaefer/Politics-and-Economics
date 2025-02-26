@@ -148,10 +148,7 @@ class Resources(commands.Cog):
   
         # Deduct the resources from the district stockpile and add to the company's stockpile
         self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
-        self.c.execute("""
-        INSERT INTO company_resources (comp_id, district, resource, stockpile) VALUES (?, ?, (SELECT resource FROM resources WHERE district = ?), ?) 
-        ON CONFLICT(comp_id, district, resource) DO UPDATE SET stockpile = company_resources.stockpile + excluded.stockpile
-        """, (company_id, district, district, amount))
+        self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND district = ?", (amount, company_id, district))
         print("here6")
         self.conn.commit()
         embed = discord.Embed(title="✅ Resource Harvested", color=discord.Color.green())
