@@ -144,9 +144,7 @@ class Resources(commands.Cog):
             return
 
         print("here4")
-        cost = 0
-        for i in range(amount):
-            cost += price_per_unit * (1 + 0.1 * i)
+        cost = price_per_unit * amount * (1 + 0.1 * (amount - 1) / 2)
         # Deduct the cost from the company's balance
         if cost > (self.c.execute("SELECT balance FROM companies WHERE id = ?", (company_id,)).fetchone()[0]):
             embed = discord.Embed(title="⚠️ Not enough balance", color=discord.Color.red())
