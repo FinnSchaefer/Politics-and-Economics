@@ -85,8 +85,10 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             
+            value = await self.calc_stock_value(comp[0])
+            
             if comp[3]:  # If the company is public
-                price_per_share = comp[1] / comp[2] if comp[2] > 0 else 0
+                price_per_share = value / comp[2] if comp[2] > 0 else 0
                 emb.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
@@ -275,10 +277,12 @@ class Companies(commands.Cog):
 
         # Calculate the new stock value after issuing new shares
         new_total_shares = total_shares + new_shares
-        price_per_share = balance / new_total_shares if new_total_shares > 0 else 0
 
         self.c.execute("UPDATE companies SET total_shares = ?, shares_available = shares_available + ? WHERE name = ?", (new_total_shares, new_shares, company_name))
         self.conn.commit()
+        
+        value = await self.calc_stock_value(company_name)
+        price_per_share = value / new_total_shares if new_total_shares > 0 else 0
         
         embed = discord.Embed(title="📈 Shares Issued", color=discord.Color.blue())
         embed.add_field(name="Company", value=company_name, inline=False)
@@ -342,8 +346,9 @@ class Companies(commands.Cog):
             self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (company_name,))
             company = self.c.fetchone()
             if company:
+                value = await self.calc_stock_value(company_name)
                 balance, total_shares = company
-                price_per_share = balance / total_shares if total_shares > 0 else 0
+                price_per_share = value / total_shares if total_shares > 0 else 0
                 embed.add_field(
                     name=f"🏢 {company_name}",
                     value=(
@@ -383,8 +388,10 @@ class Companies(commands.Cog):
             await ctx.send(embed=embed)
             return
         
+        value = await self.calc_stock_value(company_name)
+        
         # Calculate stock price per share
-        price_per_share = float(balance) / float(total_shares) if total_shares > 0 else 0.0
+        price_per_share = float(value) / float(total_shares) if total_shares > 0 else 0.0
         
         # Fetch ownership data
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ?", (company_name,))
@@ -509,7 +516,9 @@ class Companies(commands.Cog):
         self.c.execute("SELECT balance FROM companies WHERE name = ?", (purchaser_company,))
         purchaser_balance = self.c.fetchone()
         
-        price_per_share = balance / total_shares if total_shares > 0 else 0
+        value = await self.calc_stock_value(stock)
+        
+        price_per_share = value / total_shares if total_shares > 0 else 0
         total_cost = price_per_share * amount
         
         if purchaser_balance[0] < total_cost:
@@ -570,7 +579,9 @@ class Companies(commands.Cog):
         self.c.execute("SELECT capital_gains_rate FROM tax_rate")
         capital_gains_rate = self.c.fetchone()[0]
         
-        price_per_share = balance / total_shares if total_shares > 0 else 0
+        value = await self.calc_stock_value(stock)
+        
+        price_per_share = value / total_shares if total_shares > 0 else 0
         tax = (price_per_share * amount) * capital_gains_rate
         total_earnings = (price_per_share * amount) - tax
         
@@ -617,8 +628,9 @@ class Companies(commands.Cog):
             self.c.execute("SELECT balance, total_shares FROM companies WHERE name = ?", (owned_company_name,))
             company = self.c.fetchone()
             if company:
+                value = await self.calc_stock_value(owned_company_name)
                 balance, total_shares = company
-                price_per_share = balance / total_shares if total_shares > 0 else 0
+                price_per_share = value / total_shares if total_shares > 0 else 0
                 embed.add_field(
                     name=f"🏢 {owned_company_name}",
                     value=(
@@ -662,7 +674,8 @@ class Companies(commands.Cog):
         
         total_cost = 0
         for _ in range(amount):
-            price_per_share = balance / total_shares if total_shares > 0 else 0
+            value = await self.calc_stock_value(company_name)
+            price_per_share = value / total_shares if total_shares > 0 else 0
             total_cost += price_per_share
             balance += price_per_share
             shares_available -= 1
@@ -740,7 +753,8 @@ class Companies(commands.Cog):
         
         total_earnings = 0
         for _ in range(amount):
-            price_per_share = balance / total_shares if total_shares > 0 else 0
+            value = await self.calc_stock_value(company_name)
+            price_per_share = value / total_shares if total_shares > 0 else 0
             total_earnings += price_per_share
             balance -= price_per_share
             shares_available += 1
