@@ -189,7 +189,7 @@ class Resources(commands.Cog):
         print("🔄 Resource prices updated!")
         
     @harvest_resource.error()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"⏰ You are on cooldown. Try again in {error.retry_after:.0f} seconds.")
         else:
