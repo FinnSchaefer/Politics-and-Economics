@@ -46,28 +46,6 @@ class Resources(commands.Cog):
         self.conn.commit()
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def ensure_tables(self, ctx):
-        self.c.execute("DROP TABLE IF EXISTS company_resources")
-        self.c.execute("""
-        CREATE TABLE company_resources (
-            comp_id INTEGER DEFAULT 0,
-            district TEXT,
-            resource TEXT,
-            stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
-        )
-        """)
-        self.conn.commit()
-        await ctx.send("✅ Tables ensured and initialized.")
-
-    @commands.command()
-    async def print_company_r(self, ctx):
-        self.c.execute("SELECT * FROM company_resources")
-        rows = self.c.fetchall()
-        await ctx.send(rows)
-
-    @commands.command()
     async def check_resources(self, ctx):
         """Displays current resource stockpiles and prices."""
         self.c.execute("SELECT * FROM resources")
@@ -112,6 +90,7 @@ class Resources(commands.Cog):
     async def harvest_resource(self, ctx, company_name: str, amount: int):
         """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
         # Get the company ID from the company name
+        print("here")
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company_name,))
         company_row = self.c.fetchone()
         if not company_row:
@@ -122,7 +101,14 @@ class Resources(commands.Cog):
         print("here")
             
         # Get the district assigned to the company
-        self.c.execute("SELECT district FROM users WHERE id = (SELECT owner_id FROM companies WHERE company_id = ?)", (company_id,))
+        self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (company_id,))
+        owner_row = self.c.fetchone()
+        if not owner_row:
+            await ctx.send("⚠️ Owner not found for the company.")
+            return
+        owner_id = owner_row[0]
+
+        self.c.execute("SELECT district FROM users WHERE id = ?", (owner_id,))
         district_row = self.c.fetchone()
         if not district_row:
             await ctx.send("⚠️ District not found for the company.")
