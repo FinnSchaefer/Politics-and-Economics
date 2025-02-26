@@ -105,8 +105,6 @@ class Resources(commands.Cog):
             return
         company_id = company_row[0]
 
-        print("here")
-        print(company_id)
         # Get the district assigned to the company
         self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (company_id,))
         owner_row = self.c.fetchone()
@@ -115,15 +113,12 @@ class Resources(commands.Cog):
             return
         owner_id = owner_row[0]
 
-
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (owner_id,))
         district_row = self.c.fetchone()
         if not district_row:
             await ctx.send("⚠️ District not found for the company.")
             return
         district = district_row[0]
-
-        print("here2")
 
         # Get the current stockpile and price of the resource in the district
         self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
@@ -133,9 +128,6 @@ class Resources(commands.Cog):
             return
         stockpile, price_per_unit = resource_row
 
-        print("here3")
-
-        
         if stockpile < amount:
             embed = discord.Embed(title="⚠️ Not enough resources", color=discord.Color.red())
             embed.add_field(name="Available Stockpile", value=f"{stockpile} units", inline=True)
@@ -143,7 +135,6 @@ class Resources(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        print("here4")
         cost = price_per_unit * amount * (1 + 0.1 * (amount - 1) / 2)
         # Deduct the cost from the company's balance
         if cost > (self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (company_id,)).fetchone()[0]):
@@ -153,17 +144,15 @@ class Resources(commands.Cog):
             await ctx.send(embed=embed)
             return
         
-        print(cost)
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (cost, company_id))
   
         # Deduct the resources from the district stockpile and add to the company's stockpile
         self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
-        print("here5")
         self.c.execute("""
         INSERT INTO company_resources (comp_id, district, resource, stockpile) VALUES (?, ?, (SELECT resource FROM resources WHERE district = ?), ?) 
         ON CONFLICT(comp_id, district, resource) DO UPDATE SET stockpile = company_resources.stockpile + excluded.stockpile
         """, (company_id, district, district, amount))
-
+        print("here6")
         self.conn.commit()
         embed = discord.Embed(title="✅ Resource Harvested", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=True)
