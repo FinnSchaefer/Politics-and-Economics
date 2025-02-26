@@ -85,10 +85,9 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             
-            value = await self.calc_stock_value(comp[0])
             
             if comp[3]:  # If the company is public
-                price_per_share = value / comp[2] if comp[2] > 0 else 0
+                price_per_share = comp_val / comp[2] if comp[2] > 0 else 0
                 emb.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
