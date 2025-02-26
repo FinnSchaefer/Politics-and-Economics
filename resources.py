@@ -27,7 +27,7 @@ class Resources(commands.Cog):
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (company_id) REFERENCES companies (id)
+            FOREIGN KEY (company_id) REFERENCES companies (company_id)
         )
         """)
         self.conn.commit()
