@@ -480,6 +480,17 @@ class Companies(commands.Cog):
         
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (purchaser_company,))
         purchaser_id = self.c.fetchone()[0]
+        if not purchaser_id:
+            await ctx.send("⚠️ Purchaser company not found.")
+            return
+        
+        self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (purchaser_company,))
+        owner_id = self.c.fetchone()
+        
+        if not owner_id or owner_id[0] != ctx.author.id:
+            await ctx.send("⚠️ You do not own this company.")
+            return
+        
         
         self.c.execute("SELECT balance, total_shares, is_public FROM companies WHERE name = ?", (stock,))
         company = self.c.fetchone()
@@ -498,9 +509,13 @@ class Companies(commands.Cog):
         self.c.execute("SELECT balance FROM companies WHERE name = ?", (purchaser_company,))
         purchaser_balance = self.c.fetchone()
         
-        if not purchaser_balance or purchaser_balance[0] < balance:
-            await ctx.send("⚠️ The purchasing company does not have enough funds to buy shares.")
+        price_per_share = balance / total_shares if total_shares > 0 else 0
+        total_cost = price_per_share * amount
+        
+        if purchaser_balance[0] < total_cost:
+            await ctx.send("⚠️ The purchaser company does not have enough funds to buy this amount of shares.")
             return
+        
         
         price_per_share = balance / total_shares if total_shares > 0 else 0
         
