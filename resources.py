@@ -154,14 +154,14 @@ class Resources(commands.Cog):
             return
         
         print(cost)
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE id = ?", (cost, company_id))
+        self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (cost, company_id))
   
         # Deduct the resources from the district stockpile and add to the company's stockpile
         self.c.execute("UPDATE resources SET stockpile = stockpile - ? WHERE district = ?", (amount, district))
         print("here5")
         self.c.execute("""
-        INSERT INTO company_resources (company_id, district, resource, stockpile) VALUES (?, ?, (SELECT resource FROM resources WHERE district = ?), ?) 
-        ON CONFLICT(company_id, district, resource) DO UPDATE SET stockpile = stockpile + ?
+        INSERT INTO company_resources (comp_id, district, resource, stockpile) VALUES (?, ?, (SELECT resource FROM resources WHERE district = ?), ?) 
+        ON CONFLICT(comp_id, district, resource) DO UPDATE SET stockpile = stockpile + ?
         """, (company_id, district, district, amount, amount))
 
         self.conn.commit()
