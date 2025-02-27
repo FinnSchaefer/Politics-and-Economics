@@ -88,6 +88,8 @@ class Companies(commands.Cog):
             name = comp[0]
             if ticker == None:
                 ticker = ""
+            else: 
+                ticker = f": {ticker}"
             if comp[3]:
                 # If the company is public
                 if comp_val > 0:
@@ -95,7 +97,7 @@ class Companies(commands.Cog):
                 else:
                     price_per_share = 0
                 emb.add_field(
-                    name=f"🏢 {comp[0]} {ticker}",
+                    name=f"🏢 {comp[0]}{ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -109,7 +111,7 @@ class Companies(commands.Cog):
             else:  
                 # If the company is private
                 emb.add_field(
-                    name=f"🏢 {comp[0]} {ticker}",
+                    name=f"🏢 {comp[0]}{ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
