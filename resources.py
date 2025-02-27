@@ -98,6 +98,7 @@ class Resources(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.command(aliases=["harvest"])
+    @commands.cooldown(1,43200,commands.BucketType.user)
     async def harvest_resource(self, ctx, company_name: str, amount: int):
         """Allows a company to harvest resources from its assigned district at a cost that starts at 1/3rd the price of the material but becomes exponentially more expensive per resource harvested."""
         # Get the company ID from the company name
