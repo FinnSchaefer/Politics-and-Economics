@@ -355,7 +355,7 @@ class Resources(commands.Cog):
         balance = balance_row[0]
         total_cost = amount * price_per_unit
         print("here5")
-        self.c.execute("SELECT corporate_tax FROM tax_rate")
+        self.c.execute("SELECT corporate_rate FROM tax_rate")
         tax_rate = self.c.fetchone()[0]
         print("here3")
         taxed_amount = total_cost * tax_rate
