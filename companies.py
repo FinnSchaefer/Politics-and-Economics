@@ -169,6 +169,8 @@ class Companies(commands.Cog):
         
         if ticker_result:
             company = ticker_result[0]
+        
+        print("here")
         owner_id = ctx.author.id
         
         if shares <= 0:
