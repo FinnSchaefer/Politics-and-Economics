@@ -128,6 +128,11 @@ class Companies(commands.Cog):
     @commands.command(aliases=["isp"])
     async def issue_private_shares(self, ctx, company_name: str, new_shares: int):
         """Issues new shares to a private company."""
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
         sender_id = ctx.author.id      
         
         self.c.execute("SELECT balance, total_shares, is_public FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
@@ -159,6 +164,11 @@ class Companies(commands.Cog):
     @commands.command(aliases=["ps"])
     async def private_sale(self, ctx, company:str, user=discord.Member, shares= int, price = float):
         """Proposes a private sale of shares of a company to another user."""
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company = ticker_result[0]
         owner_id = ctx.author.id
         if shares <= 0:
             await ctx.send("⚠️ You must sell a positive amount of shares.")
