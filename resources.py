@@ -252,7 +252,7 @@ class Resources(commands.Cog):
         embed.add_field(name="Total Sale Amount", value=f"${total_sale_amount:.2f}", inline=True)
         await ctx.send(embed=embed)      
         
-    @commands.command()
+    @commands.command(aliases=["lm"])
     async def list_on_market(self, ctx, company: str, resource: str, amount: int):
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
@@ -310,7 +310,7 @@ class Resources(commands.Cog):
         embed.add_field(name="Price per Unit", value=f"${price_per_unit:.2f}", inline=True)
         await ctx.send(embed=embed)
         
-    @commands.command()
+    @commands.command(aliases=["bm"])
     async def buy_from_market(self, ctx, company: str, company_selling: str, resource: str, amount: int):
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
@@ -382,7 +382,7 @@ class Resources(commands.Cog):
         embed.add_field(name="Total Cost", value=f"${total_cost:.2f}", inline=True)
         await ctx.send(embed=embed)
         
-    @commands.command()
+    @commands.command(aliases=["sm"])
     async def show_market(self,ctx, page: int=1):
         self.c.execute("SELECT * FROM national_market")
         rows = self.c.fetchall()
