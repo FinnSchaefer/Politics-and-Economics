@@ -23,7 +23,8 @@ class Companies(commands.Cog):
             shares_available INTEGER DEFAULT 100,
             total_shares INTEGER DEFAULT 100,
             board_members TEXT DEFAULT '[]',
-            is_public INTEGER DEFAULT 0
+            is_public INTEGER DEFAULT 0,
+            ticker TEXT UNIQUE
         )
         """)
         self.c.execute("""
@@ -400,7 +401,13 @@ class Companies(commands.Cog):
     @commands.command(aliases=["stock","sp"])
     async def stock_price(self, ctx, company_name: str):
         """Checks a company's stock value if they are public and displays an ownership pie chart."""
+        # Check if the input is a ticker symbol
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
         
+        if ticker_result:
+            company_name = ticker_result[0]
+            
         orig_company_name = company_name
         # Fetch company information
         self.c.execute("SELECT owner_id, balance, shares_available, total_shares, is_public, board_members, ticker FROM companies WHERE name = ?", (company_name,))
