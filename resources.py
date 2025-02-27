@@ -287,7 +287,7 @@ class Resources(commands.Cog):
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         print('here1')
         # Insert or update the national market with the listed resource
-        self.c.execute("SELECT company_id FROM national_market WHERE company_id = ? AND resource = ?", (company_id, resource))
+        self.c.execute("SELECT comp_id FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
         market_row = self.c.fetchone()
         print('here1.5')
         if market_row:
