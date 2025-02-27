@@ -93,6 +93,7 @@ class Companies(commands.Cog):
                 if ticker_result != None:
                     ticker = ": " + ticker_result[0]
                 # If the company is public
+                print("here")
                 if comp_val > 0:
                     price_per_share = comp_val / comp[4]
                 else:
@@ -112,6 +113,7 @@ class Companies(commands.Cog):
             else:  
                 # If the company is private
                 ticker = ""
+                print("here")
                 self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
                 ticker_result = self.c.fetchone()
                 if ticker_result != None:
