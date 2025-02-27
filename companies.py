@@ -163,17 +163,33 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def add_ticker(self, ctx):
-        """inserts the ticker column into the companies table"""
-        try:
-            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT")
-            self.conn.commit()
-            await ctx.send("Ticker column added to companies table.")
-        except sqlite3.OperationalError as e:
-            if "duplicate column name" in str(e):
-                await ctx.send("Ticker column already exists in companies table.")
-            else:
-                raise
+    async def add_ticker(self, ctx, company: str, ticker: str):
+        
+        owner_id = ctx.author.id
+        
+        self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (company,))
+        company_owner = self.c.fetchone()
+        
+        if not company_owner or company_owner[0] != owner_id:
+            await ctx.send("⚠️ You do not own this company.")
+            return
+        
+        if len(ticker) > 4:
+            await ctx.send("⚠️ The ticker symbol must be a maximum of 4 letters.")
+            return
+        
+        self.c.execute("SELECT ticker FROM companies WHERE ticker = ?", (ticker,))
+        existing_ticker = self.c.fetchone()
+        
+        if existing_ticker:
+            await ctx.send("⚠️ This ticker symbol is already in use.")
+            return
+        
+        self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company))
+        self.conn.commit()
+        
+        await ctx.send(f"✅ Ticker symbol for **{company}** has been set to **{ticker}**.")
+        
 
     @commands.command(aliases=["send2c","s2c"])
     async def send_to_company(self, ctx, company: str, amount: float):
