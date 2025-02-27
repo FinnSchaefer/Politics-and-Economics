@@ -104,12 +104,14 @@ class Economy(commands.Cog):
                 winnings = amount * 35
                 new_balance = balance + winnings
                 self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.c.execute("UPDATE tax_rate SET government_balance = government_balance - ?", (winnings,))
                 self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_number == number and number == 0:
                 winnings = amount * 100
                 new_balance = balance + winnings
                 self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.c.execute("UPDATE tax_rate SET government_balance = government_balance - ?", (winnings,))
                 self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_number}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
@@ -130,12 +132,14 @@ class Economy(commands.Cog):
                 winnings = amount * 2
                 new_balance = balance + winnings
                 self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.c.execute("UPDATE tax_rate SET government_balance = government_balance - ?", (winnings,))
                 self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             elif winning_color == color.lower() and winning_color == "green":
                 winnings = amount * 10
                 new_balance = balance + winnings
                 self.c.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+                self.c.execute("UPDATE tax_rate SET government_balance = government_balance - ?", (winnings,))
                 self.conn.commit()
                 result_message = f"🎰 The ball landed on {winning_color}. You won ${winnings}! Your new balance is ${new_balance:.2f}."
             else:
