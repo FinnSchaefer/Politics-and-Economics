@@ -86,13 +86,17 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             
-            if comp[3]:  # If the company is public
+            if comp[3]:
+                self.c.execute("SELECT name FROM companies WHERE ticker = ?", (comp[0],))
+                ticker_result = self.c.fetchone()
+                ticker = ticker_result[0]
+                # If the company is public
                 if comp_val > 0:
                     price_per_share = comp_val / comp[4]
                 else:
                     price_per_share = 0
                 emb.add_field(
-                    name=f"🏢 {comp[0]}",
+                    name=f"🏢 {comp[0]} ({ticker})",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -196,7 +200,11 @@ class Companies(commands.Cog):
     async def send_to_company(self, ctx, company: str, amount: float):
         """Send money from a user to a company."""
         sender_id = ctx.author.id
-
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company = ticker_result[0]
         # Check if the sender has enough balance
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender_id,))
         sender_balance = self.c.fetchone()
@@ -223,7 +231,11 @@ class Companies(commands.Cog):
     async def sendc(self, ctx, company: str, recipient: discord.Member, amount: float):
         """Send money from a company to a user while applying tax to government balance."""
         sender_id = ctx.author.id
-
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company = ticker_result[0]
         # Check if the sender owns the company
         self.c.execute("SELECT balance FROM companies WHERE name = ? AND owner_id = ?", (company, sender_id))
         company_data = self.c.fetchone()
@@ -256,7 +268,11 @@ class Companies(commands.Cog):
     async def delete_company(self, ctx, company_name: str):
         """Deletes a company and liquidates its assets."""
         sender_id = ctx.author.id
-
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
         # Check if the sender owns the company
         self.c.execute("SELECT balance, is_public, shares_available, total_shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
@@ -294,6 +310,11 @@ class Companies(commands.Cog):
     async def issue_shares(self, ctx, company_name: str, new_shares: int):
         """Dilutes a company's shares by increasing the total amount, only if public."""
         sender_id = ctx.author.id
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
         
         if new_shares <= 0:
             await ctx.send("⚠️ You must issue a positive amount of shares.")
@@ -331,6 +352,12 @@ class Companies(commands.Cog):
     async def appoint_board_member(self, ctx, company_name: str, member: discord.Member):
         """Appoints a board member to a company."""
         sender_id = ctx.author.id
+        
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
         
         self.c.execute("SELECT owner_id, board_members FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
@@ -539,6 +566,18 @@ class Companies(commands.Cog):
     async def company_buy_shares(self, ctx, purchaser_company: str, stock: str, amount: int):
         """Allows companies to buy shares in another company."""
         new_owner = False
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (purchaser_company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            purchaser_company = ticker_result[0]
+            
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (stock,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            stock = ticker_result[0]
+    
         if(amount <= 0):
             await ctx.send("⚠️ You must buy a positive amount of shares.")
             return
@@ -613,6 +652,19 @@ class Companies(commands.Cog):
     async def company_sell_shares(self, ctx, seller_company: str, stock: str, amount: int):
         """Allows companies to sell shares in another company."""
         new_owner = False
+        
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (seller_company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            seller_company = ticker_result[0]
+            
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (stock,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            stock = ticker_result[0]
+        
         if(amount <= 0):
             await ctx.send("⚠️ You must sell a positive amount of shares.")
             return
@@ -685,6 +737,12 @@ class Companies(commands.Cog):
     @commands.command(aliases=["co"])
     async def company_ownership(self, ctx, company_name: str):
         """Shows all shares that a company owns"""
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
+        
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company_name,))
         company_id = self.c.fetchone()
         
@@ -725,7 +783,12 @@ class Companies(commands.Cog):
         user_id = ctx.author.id
         new_owner = False
 
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
         
+        if ticker_result:
+            company_name = ticker_result[0]
+            
         self.c.execute("SELECT balance, shares_available, total_shares, is_public FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         
@@ -790,6 +853,13 @@ class Companies(commands.Cog):
         """Allows users to sell shares of a public company, with corporate tax applied."""
         user_id = ctx.author.id
         new_owner = False
+        
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company_name,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
+        
         self.c.execute("SELECT balance, shares_available, total_shares, is_public FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         
