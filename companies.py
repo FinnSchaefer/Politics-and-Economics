@@ -173,8 +173,8 @@ class Companies(commands.Cog):
         columns = [info[1] for info in self.c.fetchall()]
         if "ticker" not in columns:
             self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
-            self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company))
-            self.conn.commit()
+        self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company))
+        self.conn.commit()
         
         embed = discord.Embed(title="✅ Ticker Symbol Added", color=discord.Color.green())
         embed.add_field(name="Company", value=company, inline=False)
