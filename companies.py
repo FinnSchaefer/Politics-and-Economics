@@ -170,6 +170,7 @@ class Companies(commands.Cog):
         if ticker_result:
             company = ticker_result[0]
         owner_id = ctx.author.id
+        
         if shares <= 0:
             await ctx.send("⚠️ You must sell a positive amount of shares.")
             return
@@ -177,7 +178,7 @@ class Companies(commands.Cog):
         if price <= 0:
             await ctx.send("⚠️ You must sell shares for a positive price.")
             return
-        
+        print("here")
         self.c.execute("SELECT name FROM companies WHERE owner_id = ? AND name = ?", (owner_id, company))
         company_data = self.c.fetchone()
         
@@ -191,12 +192,12 @@ class Companies(commands.Cog):
         if not owner_shares or owner_shares[0] < shares:
             await ctx.send(f"⚠️ You do not own enough shares to sell {shares} shares.")
             return
-        
+        print("here2")
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user.id,))
         user_balance = self.c.fetchone()
         
         total_price = shares * price
-        
+        print("here3")
         if not user_balance or user_balance[0] < total_price:
             await ctx.send(f"⚠️ {user.mention} does not have enough funds to purchase these shares.")
             return
