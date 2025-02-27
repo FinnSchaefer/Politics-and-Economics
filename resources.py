@@ -9,7 +9,6 @@ class Resources(commands.Cog):
         self.conn = sqlite3.connect("game.db", check_same_thread=False)
         self.c = self.conn.cursor()
         self.setup_resources()
-        self.update_prices.start()  # Start the daily price fluctuation task
 
     def setup_resources(self):
         """Create resources table and initialize district resource production."""
