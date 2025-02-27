@@ -30,7 +30,7 @@ class Resources(commands.Cog):
         )
         """)
         self.c.execute("""
-        CREATE TABLE IF NOT EXISTS natinal_market(
+        CREATE TABLE IF NOT EXISTS national_market(
             comp_id INTEGER DEFAULT 0,
             resource TEXT,
             amount INTEGER DEFAULT 0,
@@ -38,6 +38,7 @@ class Resources(commands.Cog):
             FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
+        self.c.execute("DROP TABLE IF EXISTS natinal_market")
         self.conn.commit()
 
         # Initial resource assignments
@@ -287,7 +288,7 @@ class Resources(commands.Cog):
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         print('here1')
         # Insert or update the national market with the listed resource
-        self.c.execute("SELECT comp_id FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        self.c.execute("SELECT comp_id FROM national_market WHERE company_id = ? AND resource = ?", (company_id, resource))
         market_row = self.c.fetchone()
         print('here1.5')
         if market_row:
