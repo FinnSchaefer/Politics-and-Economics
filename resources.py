@@ -337,7 +337,6 @@ class Resources(commands.Cog):
             return
         selling_company_id = selling_company_row[0]
         
-        print("here")
         # Check if the selling company has enough of the resource to sell
         self.c.execute("SELECT amount, price_per_unit FROM national_market WHERE comp_id = ? AND resource = ?", (selling_company_id, resource))
         market_row = self.c.fetchone()
@@ -345,36 +344,37 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough resources available on the market.")
             return
         available_amount, price_per_unit = market_row
-        print("here4")
         # Check if the buying company has enough balance to buy
         self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (company_id,))
         balance_row = self.c.fetchone()
         if not balance_row or balance_row[0] < amount * price_per_unit:
             await ctx.send("⚠️ Not enough balance to buy the resources.")
             return
+        
         balance = balance_row[0]
         total_cost = amount * price_per_unit
-        print("here5")
+
         self.c.execute("SELECT corporate_rate FROM tax_rate")
         tax_rate = self.c.fetchone()[0]
-        print("here3")
         taxed_amount = total_cost * tax_rate
         total_cost_2 = total_cost + taxed_amount
-        
-        print("here1")
+    
         # Update the balances and stockpiles
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (total_cost_2, company_id))
         self.c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_cost, selling_company_id))
         self.c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (amount, selling_company_id, resource))
         self.c.execute("DELETE FROM national_market WHERE amount = 0")
-        print("here2")
         self.c.exexcue("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
         self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        print("here2")
         company_stockpile = self.c.fetchone()
         if company_stockpile:
+            print("here3")
             self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         else:
+            print("here4")
             self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile, district) VALUES (?, ?, ?, ?)", (company_id, resource, amount, None))
+        print("here5")
         self.conn.commit()
         
         embed = discord.Embed(title="✅ Resource Purchased", color=discord.Color.green())
