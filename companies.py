@@ -119,7 +119,7 @@ class Companies(commands.Cog):
                 else:
                     ticker = "N/A"
                 emb.add_field(
-                    name=f"🏢 {comp[0]}",
+                    name=f"🏢 {comp[0]}: {ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
