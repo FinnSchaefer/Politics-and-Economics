@@ -283,7 +283,7 @@ class Resources(commands.Cog):
             return
 
         price_per_unit = price
-
+        print('here')
         # Update the company's resource stockpile
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         
@@ -297,6 +297,7 @@ class Resources(commands.Cog):
         
         self.conn.commit()
 
+        print('here2')
         embed = discord.Embed(title="✅ Resource Listed on Market", color=discord.Color.green())
         embed.add_field(name="Company", value=company, inline=True)
         embed.add_field(name="Resource", value=resource, inline=True)
