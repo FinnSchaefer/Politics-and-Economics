@@ -85,6 +85,8 @@ class Companies(commands.Cog):
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
+            if comp_val is None:
+                comp_val = 0
             
             ticker = ""
             self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
