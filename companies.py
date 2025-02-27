@@ -126,22 +126,16 @@ class Companies(commands.Cog):
     
     @commands.command()
     async def give_shares(self, ctx):
-        """For all private companies, assign their floating shares to the owner"""
-        self.c.execute("SELECT name, owner_id, shares_available FROM companies WHERE is_public = 0")
-        companies = self.c.fetchall()
-        for company_name, owner_id, shares_available in companies:
-            self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company_name))
-            ownership = self.c.fetchone()
-            
-            if ownership:
-                self.c.execute("UPDATE ownership SET shares = shares + ? WHERE owner_id = ? AND company_name = ?", (shares_available, owner_id, company_name))
-            else:
-                self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?)", (owner_id, company_name, shares_available))
-            
-            self.c.execute("UPDATE companies SET shares_available = 0 WHERE name = ?", (company_name,))
+        """If a user has 0 shares in a company and it still is in the ownership table delete that entry"""
+        self.c.execute("SELECT owner_id, company_name FROM ownership WHERE shares = 0")
+        ownerships = self.c.fetchall()
+        
+        for owner_id, company_name in ownerships:
+            self.c.execute("DELETE FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company_name))
         
         self.conn.commit()
-        await ctx.send("✅ All floating shares have been assigned to their respective owners.")
+        
+        await ctx.send("✅ Ownership table cleaned up.")
         
     
     @commands.command()
