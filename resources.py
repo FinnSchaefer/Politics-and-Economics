@@ -26,11 +26,11 @@ class Resources(commands.Cog):
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
-            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS natinal_market(
+            comp_id INTEGER DEFAULT 0,
             resource TEXT,
             amount INTEGER DEFAULT 0,
             price_per_unit REAL DEFAULT 0.0,
