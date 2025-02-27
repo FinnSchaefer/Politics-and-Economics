@@ -385,17 +385,15 @@ class Resources(commands.Cog):
         
     @commands.command(aliases=["sm"])
     async def show_market(self,ctx, page: int=1):
-        self.c.execute("SELECT * FROM national_market")
-        rows = self.c.fetchall()
-        if not rows:
-            await ctx.send("⚠️ No resources listed on the market.")
-            return
-
         items_per_page = 5
         offset = (page - 1) * items_per_page
 
         self.c.execute("SELECT * FROM national_market LIMIT ? OFFSET ?", (items_per_page, offset))
         rows = self.c.fetchall()
+
+        if not rows:
+            await ctx.send("⚠️ No resources listed on the market.")
+            return
 
         embed = discord.Embed(title="🌍 **National Market**", color=discord.Color.green())
         for i, row in enumerate(rows, start=offset + 1):
