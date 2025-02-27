@@ -419,7 +419,7 @@ class Companies(commands.Cog):
         
         # Create pie chart
         fig, ax = plt.subplots()
-        wedges, _, autotexts = ax.pie(sizes, labels=None, autopct='%1.1f%%', startangle=90)
+        wedges, texts, autotexts = ax.pie(sizes, labels=None, autopct=lambda p: f'{p:.1f}%' if p > 5 else '', startangle=90)
         ax.axis('equal')  # Equal aspect ratio ensures the pie chart is circular.
 
         # Improve label visibility
