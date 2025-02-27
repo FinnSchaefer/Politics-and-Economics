@@ -807,7 +807,7 @@ class Politics(commands.Cog):
     async def vote_bill(self, ctx, bill_number: int, vote: str):
         """Allows Senators to vote on multiple bills at once."""
         voter_id = ctx.author.id
-        if ctx.channel.id != 1341231889557487739:
+        if ctx.channel.id != 1343032313763725322:
             await ctx.send("⚠️ Bill voting can only take place in the designated voting channel.")
             return
         today = datetime.datetime.now(datetime.timezone.utc).weekday()
