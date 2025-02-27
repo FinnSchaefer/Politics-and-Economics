@@ -405,9 +405,9 @@ class Companies(commands.Cog):
             if shares > 0:
                 user = self.bot.get_user(shareholder_id)
                 self.c.execute("SELECT name FROM companies WHERE company_id = ?", (shareholder_id,))
-                company_name = self.c.fetchone()
-            if company_name:
-                labels.append(company_name[0])
+                shareholder_company_name = self.c.fetchone()
+            if shareholder_company_name:
+                labels.append(shareholder_company_name[0])
             else:
                 labels.append(user.name if user else f"User {shareholder_id}")
             sizes.append(shares)
@@ -424,14 +424,19 @@ class Companies(commands.Cog):
 
         # Improve label visibility
         for text in texts:
-            text.set_fontsize(8)
+            text.set_fontsize(10)
             text.set_rotation(45)
         for autotext in autotexts:
-            autotext.set_fontsize(8)
+            autotext.set_fontsize(10)
+            autotext.set_color('white')
+            autotext.set_weight('bold')
         
+        # Add a legend
+        ax.legend(wedges, labels, title="Shareholders", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+
         # Save pie chart to image
         buffer = io.BytesIO()
-        fig.savefig(buffer, format='png')
+        fig.savefig(buffer, format='png', bbox_inches='tight')
         buffer.seek(0)
         
         # Fetch owner and board members
