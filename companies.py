@@ -166,7 +166,7 @@ class Companies(commands.Cog):
     async def add_ticker(self, ctx):
         """inserts the ticker column into the companies table"""
         try:
-            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
+            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT")
             self.conn.commit()
             await ctx.send("Ticker column added to companies table.")
         except sqlite3.OperationalError as e:
