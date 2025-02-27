@@ -80,21 +80,14 @@ class Companies(commands.Cog):
         emb = discord.Embed(title="📢 Registered Companies", color=discord.Color.blue())
         
         for i, comp in enumerate(companies[offset:offset + items_per_page], start=offset + 1):
-            self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (comp[0],))
-            owner_id = self.c.fetchone()[0]
+            self.c.execute("SELECT owner_id, ticker FROM companies WHERE name = ?", (comp[0],))
+            owner_id, ticker = self.c.fetchone()
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             name = comp[0]
-            form = ": "
-            ticker = ""
-            print("here")
-            self.c.execute("SELECT ticker FROM companies WHERE name = ?", (name,))
-            ticker_result = self.c.fetchone()
-            if ticker_result:
-                form += ticker_result[0]
-            print(form)
-
+            if ticker == None:
+                ticker = ""
             if comp[3]:
                 # If the company is public
                 if comp_val > 0:
