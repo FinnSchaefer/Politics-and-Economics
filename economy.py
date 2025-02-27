@@ -55,6 +55,21 @@ class Economy(commands.Cog):
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
+    @commands.command(aliases=['board'])
+    async def leader_board(self, ctx):
+        """displays a leader board based on total value of an individual's assets"""
+        self.c.execute("SELECT user_id, balance FROM users")
+        rows = self.c.fetchall()
+        if not rows:
+            await ctx.send("⚠️ No users found.")
+            return
+        rows.sort(key=lambda x: x[1], reverse=True)
+        embed = discord.Embed(title="Leader Board", color=discord.Color.green())
+        for i, row in enumerate(rows[:10], start=1):
+            user = self.bot.get_user(row[0])
+            if user:
+                embed.add_field(name=f"{i}. {user}", value=f"${row[1]:.2f}", inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['rou'])
     async def roulette(self, ctx, amount: float, color_number: str):
