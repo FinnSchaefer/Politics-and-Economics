@@ -26,6 +26,7 @@ class Resources(commands.Cog):
             district TEXT,
             resource TEXT,
             stockpile INTEGER DEFAULT 0,
+            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
         self.c.execute("""
