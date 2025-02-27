@@ -91,7 +91,7 @@ class Companies(commands.Cog):
             print("here")
             self.c.execute("SELECT ticker FROM companies WHERE name = ?", (name,))
             ticker_result = self.c.fetchone()
-            if ticker_result != None:
+            if ticker_result:
                 form.append(ticker_result[0])
             print(form)
 
