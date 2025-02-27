@@ -393,20 +393,20 @@ class Companies(commands.Cog):
         
         orig_company_name = company_name
         # Fetch company information
-        self.c.execute("SELECT owner_id, balance, shares_available, total_shares, is_public, board_members FROM companies WHERE name = ?", (company_name,))
+        self.c.execute("SELECT owner_id, balance, shares_available, total_shares, is_public, board_members, ticker FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
         
         if not company:
             await ctx.send("⚠️ Company not found.")
             return
         
-        owner_id, balance, shares_available, total_shares, is_public, board_members = company
+        owner_id, balance, shares_available, total_shares, is_public, board_members, ticker = company
         
         if not is_public:
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             total_value = await self.calc_stock_value(company_name)
-            embed = discord.Embed(title=f"🏢 {orig_company_name} Stock Information", color=discord.Color.blue())
+            embed = discord.Embed(title=f"🏢 {orig_company_name} ({ticker}) Stock Information", color=discord.Color.blue())
             embed.add_field(name="Owner", value=owner_name, inline=False)
             embed.add_field(name="Balance", value=f"${balance:.2f}", inline=False)
             embed.add_field(name="Total Value", value=f"${total_value:.2f}", inline=False)
