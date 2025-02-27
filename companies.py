@@ -87,12 +87,11 @@ class Companies(commands.Cog):
             comp_val = await self.calc_stock_value(comp[0])
             
             if comp[3]:
+                ticker = ""
                 self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
                 ticker_result = self.c.fetchone()
                 if ticker_result != None:
                     ticker = ": " + ticker_result[0]
-                else:
-                    ticker = ""
                 # If the company is public
                 if comp_val > 0:
                     price_per_share = comp_val / comp[4]
@@ -112,12 +111,11 @@ class Companies(commands.Cog):
                 )
             else:  
                 # If the company is private
+                ticker = ""
                 self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
                 ticker_result = self.c.fetchone()
                 if ticker_result != None:
                     ticker = ": " + ticker_result[0]
-                else:
-                    ticker = ""
                 emb.add_field(
                     name=f"🏢 {comp[0]}{ticker}",
                     value=(
