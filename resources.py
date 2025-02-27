@@ -31,10 +31,10 @@ class Resources(commands.Cog):
         """)
         self.c.execute("""
         CREATE TABLE IF NOT EXISTS natinal_market(
-            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
             resource TEXT,
             amount INTEGER DEFAULT 0,
-            price_per_unit REAL DEFAULT 0.0
+            price_per_unit REAL DEFAULT 0.0,
+            FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
         self.conn.commit()
