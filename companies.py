@@ -462,7 +462,7 @@ class Companies(commands.Cog):
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             total_value = await self.calc_stock_value(company_name)
-            embed = discord.Embed(title=f"🏢 {orig_company_name}{ticker} Stock Information", color=discord.Color.blue())
+            embed = discord.Embed(title=f"🏢 {orig_company_name}{ticker}", color=discord.Color.blue())
             embed.add_field(name="Owner", value=owner_name, inline=False)
             embed.add_field(name="Balance", value=f"${balance:.2f}", inline=False)
             embed.add_field(name="Total Value", value=f"${total_value:.2f}", inline=False)
@@ -528,7 +528,7 @@ class Companies(commands.Cog):
         
         # Send stock price and ownership chart
         file = discord.File(buffer, filename="stock_price.png")
-        embed = discord.Embed(title=f"📈 {orig_company_name}{ticker} Stock Information", color=discord.Color.blue())
+        embed = discord.Embed(title=f"📈 {orig_company_name}{ticker}", color=discord.Color.blue())
         embed.add_field(name="🏢 Owner", value=owner.name if owner else f"User {owner_id}", inline=False)
         embed.add_field(name="🏛️ Board Members", value=", ".join(board_member_names) if board_member_names else "None", inline=False)
         embed.add_field(name="💰 Stock Price", value=f"**${price_per_share:.2f}** per share", inline=False)
