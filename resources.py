@@ -355,11 +355,16 @@ class Resources(commands.Cog):
         balance = balance_row[0]
         
         total_cost = amount * price_per_unit
+        tax_rate = self.c.execute("SELECT corporate_tax FROM tax_rate").fetchone()[0]
+        taxed_amount = total_cost * tax_rate
+        total_cost_2 = total_cost + taxed_amount
         
         # Update the balances and stockpiles
-        self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (total_cost, company_id))
+        self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (total_cost_2, company_id))
         self.c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_cost, selling_company_id))
         self.c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (amount, selling_company_id, resource))
+        self.c.execute("DELETE FROM national_market WHERE amount = 0")
+        self.c.exexcue("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
         self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
         company_stockpile = self.c.fetchone()
         if company_stockpile:
@@ -372,7 +377,8 @@ class Resources(commands.Cog):
         embed.add_field(name="Buying Company", value=company, inline=True)
         embed.add_field(name="Selling Company", value=company_selling, inline=True)
         embed.add_field(name="Resource", value=resource, inline=True)
-        embed.add_field(name="Amount", value=f"{amount} units", inline=True)
+        embed.add_field(name="Units", value=f"{amount}", inline=True)
+        embed.add_field(name="Tax", value=f"${taxed_amount:.2f}", inline=True)
         embed.add_field(name="Total Cost", value=f"${total_cost:.2f}", inline=True)
         await ctx.send(embed=embed)
         
