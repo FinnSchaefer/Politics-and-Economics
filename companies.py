@@ -170,9 +170,8 @@ class Companies(commands.Cog):
         if ticker_result:
             company = ticker_result[0]
         
-        print("here")
         owner_id = ctx.author.id
-        
+        print("here")
         if shares <= 0:
             await ctx.send("⚠️ You must sell a positive amount of shares.")
             return
