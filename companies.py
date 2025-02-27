@@ -92,6 +92,7 @@ class Companies(commands.Cog):
             ticker_result = self.c.fetchone()
             if ticker_result != None:
                 form.append(ticker_result[0])
+            print(form)
 
             if comp[3]:
                 # If the company is public
