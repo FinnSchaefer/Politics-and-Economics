@@ -99,7 +99,7 @@ class Companies(commands.Cog):
                 else:
                     price_per_share = 0
                 emb.add_field(
-                    name=f"🏢 {comp[0]} ({ticker})",
+                    name=f"🏢 {comp[0]}: {ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -110,7 +110,14 @@ class Companies(commands.Cog):
                     ),
                     inline=False
                 )
-            else:  # If the company is private
+            else:  
+                # If the company is private
+                self.c.execute("SELECT name FROM companies WHERE ticker = ?", (comp[0],))
+                ticker_result = self.c.fetchone()
+                if ticker_result:
+                    ticker = ticker_result[0]
+                else:
+                    ticker = "N/A"
                 emb.add_field(
                     name=f"🏢 {comp[0]}",
                     value=(
