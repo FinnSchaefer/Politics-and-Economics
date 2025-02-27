@@ -353,9 +353,11 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough balance to buy the resources.")
             return
         balance = balance_row[0]
-        print("here3")
         total_cost = amount * price_per_unit
-        tax_rate = self.c.execute("SELECT corporate_tax FROM tax_rate").fetchone()[0]
+        print("here5")
+        self.c.execute("SELECT corporate_tax FROM tax_rate")
+        tax_rate = self.c.fetchone()[0]
+        print("here3")
         taxed_amount = total_cost * tax_rate
         total_cost_2 = total_cost + taxed_amount
         
