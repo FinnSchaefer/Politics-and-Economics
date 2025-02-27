@@ -462,7 +462,7 @@ class Companies(commands.Cog):
             owner = self.bot.get_user(owner_id)
             owner_name = owner.name if owner else f"User {owner_id}"
             total_value = await self.calc_stock_value(company_name)
-            embed = discord.Embed(title=f"🏢 {orig_company_name}{ticker}) Stock Information", color=discord.Color.blue())
+            embed = discord.Embed(title=f"🏢 {orig_company_name}{ticker} Stock Information", color=discord.Color.blue())
             embed.add_field(name="Owner", value=owner_name, inline=False)
             embed.add_field(name="Balance", value=f"${balance:.2f}", inline=False)
             embed.add_field(name="Total Value", value=f"${total_value:.2f}", inline=False)
