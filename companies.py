@@ -19,7 +19,6 @@ class Companies(commands.Cog):
             company_id INTEGER PRIMARY KEY AUTOINCREMENT,
             owner_id INTEGER,
             name TEXT UNIQUE,
-            ticker TEXT UNIQUE,
             balance REAL DEFAULT 0.0,
             shares_available INTEGER DEFAULT 100,
             total_shares INTEGER DEFAULT 100,
