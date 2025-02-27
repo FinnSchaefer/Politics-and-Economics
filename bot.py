@@ -148,8 +148,10 @@ async def help(ctx, menu: str = None):
                 "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company to user.\n"
                 "`send2c [Company] [Amount]` → Transfer money to a company.\n"
                 "`stock_price [Company]` → Check a stock’s value.\n"
-                "`make_public [Company]` → List a company on the stock exchange.\n"
+                "`make_public [Company] [4 char ticker]` → List a company on the stock exchange.\n"
                 "`stock_ownership` → Check your stock ownership.\n"
+                "`bs [Company] [Amount]` → Buy shares in a company.\n"
+                "`ss [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
             ),
             inline=False
         )
@@ -163,11 +165,9 @@ async def help(ctx, menu: str = None):
                 "`create_company [Name]` → Start a company.\n"
                 "`delete_company [Name]` → Close a company.\n"
                 "`sendc [Company] [Recipient] [Amount]` → Transfer money from a company.\n"
-                "`buy_shares [Company] [Amount]` → Buy shares in a company (corporate tax applies).\n"
-                "`sell_shares [Company] [Amount]` → Sell shares of a company (corporate tax applies).\n"
                 "`is [Company] [Amount]` → Issues an amount of stock.\n"
                 "`cbs [Company Buying] [Stock] [Amount]` → Buy a company owned stock.\n"
-                "`css [Company Selling] [Stock] [Amount]` → Sell a company owned stock..\n"
+                "`css [Company Selling] [Stock] [Amount]` → Sell a company owned stock (tax applied).\n"
                 "`appoint_board_member [Company] @User` → Assign a board member.\n"
             ),
             inline=False
