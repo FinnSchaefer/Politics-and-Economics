@@ -105,7 +105,6 @@ class Resources(commands.Cog):
                 return
             price = price_row[0]
             embed.add_field(
-            name=f"🏙️ {district}",
             value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
             inline=False
             )
@@ -354,10 +353,12 @@ class Resources(commands.Cog):
         
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
+        
         if isinstance(error, commands.CommandOnCooldown):
             minutes, seconds = divmod(error.retry_after, 60)
             await ctx.send(f"⏰ You are on cooldown. Try again in {minutes:.0f} minutes and {seconds:.0f} seconds.")
         else:
+            self.harvest_resource.reset_cooldown(ctx)
             await ctx.send(f"⚠️ An error occurred: {error}")
 
 async def setup(bot):
