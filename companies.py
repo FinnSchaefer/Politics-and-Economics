@@ -231,7 +231,7 @@ class Companies(commands.Cog):
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user.id, company, shares, shares))
         self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (total_price, user.id))
         self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (user_gain, owner_id))
-        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ? WHERE user_id = ?", (tax, user.id))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.conn.commit()
         
         embed = discord.Embed(title="✅ Private Sale Accepted", color=discord.Color.green())
