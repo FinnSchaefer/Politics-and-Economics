@@ -288,12 +288,12 @@ class Resources(commands.Cog):
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         
         # Insert or update the national market with the listed resource
-        self.c.execute("SELECT comp_id FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        self.c.execute("SELECT company_id FROM national_market WHERE company_id = ? AND resource = ?", (company_id, resource))
         market_row = self.c.fetchone()
         if market_row:
-            self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE comp_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
+            self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE company_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
         else:
-            self.c.execute("INSERT INTO national_market (comp_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)", (company_id, resource, amount, price_per_unit))
+            self.c.execute("INSERT INTO national_market (company_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)", (company_id, resource, amount, price_per_unit))
         
         self.conn.commit()
 
