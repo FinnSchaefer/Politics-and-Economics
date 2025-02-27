@@ -419,8 +419,15 @@ class Companies(commands.Cog):
         
         # Create pie chart
         fig, ax = plt.subplots()
-        ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
+        wedges, texts, autotexts = ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
         ax.axis('equal')  # Equal aspect ratio ensures the pie chart is circular.
+
+        # Improve label visibility
+        for text in texts:
+            text.set_fontsize(8)
+            text.set_rotation(45)
+        for autotext in autotexts:
+            autotext.set_fontsize(8)
         
         # Save pie chart to image
         buffer = io.BytesIO()
