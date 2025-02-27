@@ -283,21 +283,21 @@ class Resources(commands.Cog):
             return
 
         price_per_unit = price
-        print('here')
         # Update the company's resource stockpile
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
-        
+        print('here1')
         # Insert or update the national market with the listed resource
         self.c.execute("SELECT company_id FROM national_market WHERE company_id = ? AND resource = ?", (company_id, resource))
         market_row = self.c.fetchone()
+        print('here1.5')
         if market_row:
             self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE company_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
         else:
+            print('here2')
             self.c.execute("INSERT INTO national_market (company_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)", (company_id, resource, amount, price_per_unit))
         
         self.conn.commit()
 
-        print('here2')
         embed = discord.Embed(title="✅ Resource Listed on Market", color=discord.Color.green())
         embed.add_field(name="Company", value=company, inline=True)
         embed.add_field(name="Resource", value=resource, inline=True)
