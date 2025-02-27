@@ -364,7 +364,7 @@ class Resources(commands.Cog):
         self.c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_cost, selling_company_id))
         self.c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (amount, selling_company_id, resource))
         self.c.execute("DELETE FROM national_market WHERE amount = 0")
-        self.c.exexcue("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
         self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
         print("here2")
         company_stockpile = self.c.fetchone()
