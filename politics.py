@@ -845,6 +845,22 @@ class Politics(commands.Cog):
             color=discord.Color.green()
         )
         await ctx.send(embed=embed)
+        
+        # Check if the bill has a majority vote
+        self.c.execute("SELECT COUNT(*) FROM users WHERE senator = 1")
+        total_senators = self.c.fetchone()[0]
+        self.c.execute("SELECT votes FROM bills WHERE bill_number = ?", (bill_number,))
+        bill_votes = self.c.fetchone()[0]
+
+        if bill_votes > total_senators / 2:
+            self.c.execute("UPDATE bills SET passed = 1 WHERE bill_number = ?", (bill_number,))
+            self.conn.commit()
+            embed = discord.Embed(
+            title="Bill Passed",
+            description=f"📜 **{bill_name} (#{bill_number})** has been passed by the Senate and is now law!",
+            color=discord.Color.green()
+            )
+            await ctx.send(embed=embed)
 
 async def setup(bot):
     politics_cog = Politics(bot)
