@@ -802,6 +802,25 @@ class Politics(commands.Cog):
             )
             await channel.send(embed=embed)
 
+    @commands.command(aliases=["lp"])
+    async def leave_party(self,ctx):
+        user_id = ctx.author.id
+
+        self.c.execute("SELECT party FROM users WHERE user_id = ?", (user_id,))
+        row = self.c.fetchone()
+        if not row or not row[0]:
+            await ctx.send("⚠️ You are not in a party.")
+            return
+
+        self.c.execute("UPDATE users SET party = NULL WHERE user_id = ?", (user_id,))
+        self.conn.commit()
+        embed = discord.Embed(
+            title="Party Left",
+            description=f"✅ You have left the party **{row[0]}**.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+
     @commands.command()
     @commands.has_role("Senator")
     async def vote_bill(self, ctx, bill_number: int, vote: str):

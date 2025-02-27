@@ -64,7 +64,7 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ No users found.")
             return
         rows.sort(key=lambda x: x[1], reverse=True)
-        embed = discord.Embed(title="Leader Board", color=discord.Color.green())
+        embed = discord.Embed(title="Balance Leader Board", color=discord.Color.green())
         for i, row in enumerate(rows[:10], start=1):
             user = self.bot.get_user(row[0])
             if user:

@@ -131,6 +131,7 @@ async def help(ctx, menu: str = None):
                 "`set_tax [Corporate Rate] [Trade Rate]` → Chancellor-only: Set tax rates.\n"
                 "`mp [Party Name]` → Create a new political party.\n"
                 "`jp [Party Name]` → Join an existing political party.\n"
+                "`lp` → Leave your current political party.\n"
                 "`dp [Party Name]` → Delete a political party.\n"
                 "`pp` → Show all political parties.\n"
             ),
