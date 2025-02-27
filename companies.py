@@ -61,6 +61,8 @@ class Companies(commands.Cog):
         
         self.c.execute("INSERT INTO companies (owner_id, name, balance) VALUES (?, ?, ?)", (owner_id, company_name, 1000))
         self.c.execute("UPDATE users SET balance = balance - 1000 WHERE user_id = ?", (owner_id,))
+        self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?)", (owner_id, company_name, 100))
+        self.c.execute("UPDATE shares_available = shares_available - 100 WHERE name = ?", (company_name,))
         self.conn.commit()
         
         await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
@@ -122,6 +124,25 @@ class Companies(commands.Cog):
                 )
         await ctx.send(embed=emb)
     
+    @commands.command()
+    async def give_shares(self, ctx):
+        """For all private companies, assign their floating shares to the owner"""
+        self.c.execute("SELECT name, owner_id, shares_available FROM companies WHERE is_public = 0")
+        companies = self.c.fetchall()
+        for company_name, owner_id, shares_available in companies:
+            self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company_name))
+            ownership = self.c.fetchone()
+            
+            if ownership:
+                self.c.execute("UPDATE ownership SET shares = shares + ? WHERE owner_id = ? AND company_name = ?", (shares_available, owner_id, company_name))
+            else:
+                self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?)", (owner_id, company_name, shares_available))
+            
+            self.c.execute("UPDATE companies SET shares_available = 0 WHERE name = ?", (company_name,))
+        
+        self.conn.commit()
+        await ctx.send("✅ All floating shares have been assigned to their respective owners.")
+        
     
     @commands.command()
     @commands.has_role("RP Admin")
@@ -859,6 +880,8 @@ class Companies(commands.Cog):
             embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
             
         await ctx.send(embed=embed)
+
+
 
     @commands.command(aliases=["sellshares","ss"])
     async def sell_shares(self, ctx, company_name: str, amount: int):
