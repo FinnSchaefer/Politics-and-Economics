@@ -192,69 +192,7 @@ class Resources(commands.Cog):
         embed.add_field(name="Company", value=company_name, inline=True)
         embed.add_field(name="Amount", value=f"{amount} units", inline=True)
         embed.add_field(name="Cost", value=f"${cost:.2f}", inline=True)
-        await ctx.send(embed=embed)
-        
-    @commands.command(aliases=["srg"])
-    async def sell_resources_government(self, ctx, company: str, resource: str, amount: int):
-        """Allows a company to sell resources to the government at the current market price."""
-        if amount <= 0:
-            await ctx.send("⚠️ Amount must be greater than 0.")
-            return
-        # Get the company ID from the company name
-        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
-        ticker_result = self.c.fetchone()
-        
-        if ticker_result:
-            company = ticker_result[0]
-            
-        self.c.execute("SELECT owner_id FROM companies WHERE name = ?", (company,))
-        owner_row = self.c.fetchone()
-        if not owner_row or owner_row[0] != ctx.author.id:
-            await ctx.send("⚠️ You are not the owner of this company.")
-            return
-            
-        self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
-        company_row = self.c.fetchone()
-        if not company_row:
-            await ctx.send("⚠️ Company not found.")
-            return
-        company_id = company_row[0]
-        
-        # Check if the company has enough of the resource to sell
-        self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
-        company_stockpile = self.c.fetchone()
-        if not company_stockpile or company_stockpile[0] < amount:
-            await ctx.send("⚠️ Not enough resources to sell.")
-            return
-
-        # Get the current market price of the resource
-        self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
-        price_row = self.c.fetchone()
-        if not price_row:
-            await ctx.send("⚠️ Resource not found in the market.")
-            return
-        price_per_unit = price_row[0]
-        tax_rate = self.c.execute("SELECT corporate_tax FROM tax_rate").fetchone()[0]
-        # Calculate the total sale amount
-        total_sale_amount = price_per_unit * amount
-        taxed_amount = total_sale_amount * tax_rate
-        total_sale_amount = total_sale_amount - taxed_amount
-
-        # Update the company's resource stockpile and balance
-        self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
-        self.c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_sale_amount, company_id))
-        
-        # Update the government balance
-        self.c.execute("UPDATE tax_rate SET government_balance = government_balance - ?", (total_sale_amount,))
-        self.conn.commit()
-
-        embed = discord.Embed(title="✅ Resources Sold to Government", color=discord.Color.green())
-        embed.add_field(name="Company", value=company, inline=True)
-        embed.add_field(name="Resource", value=resource, inline=True)
-        embed.add_field(name="Amount", value=f"{amount} units", inline=True)
-        embed.add_field(name="Tax", value=f"${taxed_amount:.2f}", inline=True)
-        embed.add_field(name="Total Sale Amount", value=f"${total_sale_amount:.2f}", inline=True)
-        await ctx.send(embed=embed)      
+        await ctx.send(embed=embed)    
         
     @commands.command(aliases=["lm"])
     async def list_on_market(self, ctx, company: str, resource: str, amount: int, price: float):

@@ -205,6 +205,9 @@ async def help(ctx, menu: str = None):
             "`harvest [Company] [Amount]` → Mine the districts assigned resource.\n"
             "`cr` → Check current resource price and amounts left to harvest.\n"
             "`cor [Company]` → Trade resources with another user.\n"
+            "`lm [Company] [Resouce] [Amount] [Price]` → List company resources for sale on the national market.\n"
+            "`bm [Buying Company] [Selling Company] [Resource] [Amount]` → Buy resources from the market.\n"
+            "`sm [Page]` → Show the market type an integer to go to a different page.\n"
             ),
             inline=False
         )
