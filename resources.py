@@ -337,6 +337,7 @@ class Resources(commands.Cog):
             return
         selling_company_id = selling_company_row[0]
         
+        print("here")
         # Check if the selling company has enough of the resource to sell
         self.c.execute("SELECT amount, price_per_unit FROM national_market WHERE comp_id = ? AND resource = ?", (selling_company_id, resource))
         market_row = self.c.fetchone()
@@ -344,7 +345,7 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough resources available on the market.")
             return
         available_amount, price_per_unit = market_row
-        
+        print("here4")
         # Check if the buying company has enough balance to buy
         self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (company_id,))
         balance_row = self.c.fetchone()
@@ -352,7 +353,7 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough balance to buy the resources.")
             return
         balance = balance_row[0]
-        
+        print("here3")
         total_cost = amount * price_per_unit
         tax_rate = self.c.execute("SELECT corporate_tax FROM tax_rate").fetchone()[0]
         taxed_amount = total_cost * tax_rate
