@@ -63,7 +63,7 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ No resource data available.")
             return
 
-        embed = discord.Embed(title="🌍 **Current Resource Market**", color=discord.Color.green())
+        embed = discord.Embed(title="🌍 **Current Resources for Harvesting**", color=discord.Color.green())
         for row in rows:
             district, resource, stockpile, price = row
             embed.add_field(
