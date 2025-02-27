@@ -254,7 +254,7 @@ class Resources(commands.Cog):
         await ctx.send(embed=embed)      
         
     @commands.command(aliases=["lm"])
-    async def list_on_market(self, ctx, company: str, resource: str, amount: int):
+    async def list_on_market(self, ctx, company: str, resource: str, amount: int, price: float):
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
         
@@ -282,25 +282,18 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough resources to list.")
             return
 
-        # Get the current market price of the resource
-        self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
-        price_row = self.c.fetchone()
-        if not price_row:
-            await ctx.send("⚠️ Resource not found in the market.")
-            return
-        price_per_unit = price_row[0]
+        price_per_unit = price
 
         # Update the company's resource stockpile
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         
         # Insert or update the national market with the listed resource
-        self.c.execute("""
-        INSERT INTO national_market (comp_id, resource, amount, price_per_unit)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(comp_id, resource) DO UPDATE SET
-        amount = amount + excluded.amount,
-        price_per_unit = excluded.price_per_unit
-        """, (company_id, resource, amount, price_per_unit))
+        self.c.execute("SELECT comp_id FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        market_row = self.c.fetchone()
+        if market_row:
+            self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE comp_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
+        else:
+            self.c.execute("INSERT INTO national_market (comp_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)", (company_id, resource, amount, price_per_unit))
         
         self.conn.commit()
 
