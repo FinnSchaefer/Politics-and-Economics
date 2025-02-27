@@ -86,12 +86,12 @@ class Companies(commands.Cog):
             owner_name = owner.name if owner else f"User {owner_id}"
             comp_val = await self.calc_stock_value(comp[0])
             name = comp[0]
-            
+            form = ": "
             ticker = ""
             self.c.execute("SELECT ticker FROM companies WHERE name = ?", (name,))
             ticker_result = self.c.fetchone()
             if ticker_result != None:
-                ticker = ": " + ticker_result[0]
+                form.append(ticker_result[0])
 
             if comp[3]:
                 # If the company is public
@@ -100,7 +100,7 @@ class Companies(commands.Cog):
                 else:
                     price_per_share = 0
                 emb.add_field(
-                    name=f"🏢 {comp[0]}{ticker}",
+                    name=f"🏢 {comp[0]} {ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
@@ -114,7 +114,7 @@ class Companies(commands.Cog):
             else:  
                 # If the company is private
                 emb.add_field(
-                    name=f"🏢 {comp[0]}{ticker}",
+                    name=f"🏢 {comp[0]} {ticker}",
                     value=(
                     f"👤 Owner: {owner_name}\n"
                     f"💰 Value: ${comp_val:,.2f}\n"
