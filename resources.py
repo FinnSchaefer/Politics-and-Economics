@@ -197,6 +197,9 @@ class Resources(commands.Cog):
     @commands.command(aliases=["srg"])
     async def sell_resources_government(self, ctx, company: str, resource: str, amount: int):
         """Allows a company to sell resources to the government at the current market price."""
+        if amount <= 0:
+            await ctx.send("⚠️ Amount must be greater than 0.")
+            return
         # Get the company ID from the company name
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
@@ -255,6 +258,10 @@ class Resources(commands.Cog):
         
     @commands.command(aliases=["lm"])
     async def list_on_market(self, ctx, company: str, resource: str, amount: int, price: float):
+        if amount <= 0 or price <= 0:
+            await ctx.send("⚠️ Amount and price must be greater than 0.")
+            return
+        
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
         
@@ -285,11 +292,9 @@ class Resources(commands.Cog):
         price_per_unit = price
         # Update the company's resource stockpile
         self.c.execute("UPDATE company_resources SET stockpile = stockpile - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
-        print('here1')
         # Insert or update the national market with the listed resource
         self.c.execute("SELECT comp_id FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
         market_row = self.c.fetchone()
-        print('here1.5')
         if market_row:
             self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE comp_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
         else:
@@ -354,11 +359,13 @@ class Resources(commands.Cog):
         taxed_amount = total_cost * tax_rate
         total_cost_2 = total_cost + taxed_amount
         
+        print("here1")
         # Update the balances and stockpiles
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (total_cost_2, company_id))
         self.c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_cost, selling_company_id))
         self.c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (amount, selling_company_id, resource))
         self.c.execute("DELETE FROM national_market WHERE amount = 0")
+        print("here2")
         self.c.exexcue("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
         self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
         company_stockpile = self.c.fetchone()
