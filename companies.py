@@ -19,6 +19,7 @@ class Companies(commands.Cog):
             company_id INTEGER PRIMARY KEY AUTOINCREMENT,
             owner_id INTEGER,
             name TEXT UNIQUE,
+            ticker TEXT UNIQUE,
             balance REAL DEFAULT 0.0,
             shares_available INTEGER DEFAULT 100,
             total_shares INTEGER DEFAULT 100,
@@ -128,9 +129,13 @@ class Companies(commands.Cog):
     
     
     @commands.command()
-    async def make_public(self, ctx, company_name: str):
+    async def make_public(self, ctx, company_name: str, ticker: str):
         """Allows a company to go public on the stock exchange and assigns all available shares to the owner."""
         sender_id = ctx.author.id
+        
+        if len(ticker) > 4:
+            await ctx.send("⚠️ The ticker symbol must be a maximum of 4 letters.")
+            return
         
         self.c.execute("SELECT is_public, shares_available, total_shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
@@ -148,13 +153,33 @@ class Companies(commands.Cog):
         
         self.c.execute("UPDATE companies SET is_public = 1, shares_available = 0 WHERE name = ?", (company_name,))
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (sender_id, company_name, shares_available, shares_available))
+        self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
+        self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company_name))
         self.conn.commit()
         
         embed = discord.Embed(title="📊 Company Publicly Listed", color=discord.Color.green())
         embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="Ticker", value=ticker, inline=False)
         embed.add_field(name="Message", value=f"{company_name} is now publicly traded on the stock exchange! All available shares have been assigned to {ctx.author.name}.", inline=False)
         await ctx.send(embed=embed)
 
+
+    @commands.command()
+    async def add_ticker(self, ctx, company: str, ticker: str):
+        if len(ticker) > 4:
+            await ctx.send("⚠️ The ticker symbol must be a maximum of 4 letters.")
+            return
+        self.c.execute("PRAGMA table_info(companies)")
+        columns = [info[1] for info in self.c.fetchall()]
+        if "ticker" not in columns:
+            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
+            self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company))
+            self.conn.commit()
+        
+        embed = discord.Embed(title="✅ Ticker Symbol Added", color=discord.Color.green())
+        embed.add_field(name="Company", value=company, inline=False)
+        embed.add_field(name="Ticker", value=ticker, inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["send2c","s2c"])
     async def send_to_company(self, ctx, company: str, amount: float):
