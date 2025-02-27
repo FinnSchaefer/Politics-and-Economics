@@ -298,7 +298,6 @@ class Resources(commands.Cog):
         if market_row:
             self.c.execute("UPDATE national_market SET amount = amount + ?, price_per_unit = ? WHERE comp_id = ? AND resource = ?", (amount, price_per_unit, company_id, resource))
         else:
-            print('here2')
             self.c.execute("INSERT INTO national_market (comp_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)", (company_id, resource, amount, price_per_unit))
         
         self.conn.commit()
