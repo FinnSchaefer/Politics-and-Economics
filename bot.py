@@ -2,6 +2,7 @@ import asyncio
 import discord
 import sqlite3
 import os
+import random
 from discord.ext import commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
@@ -62,6 +63,19 @@ async def distribute_ubi():
     """Function to distribute Universal Basic Income (UBI) daily."""
     c.execute("UPDATE users SET balance = balance + 500")
     conn.commit()
+    
+async def update_prices(self):
+        """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
+        self.c.execute("SELECT district, price_per_unit FROM resources")
+        rows = self.c.fetchall()
+
+        for district, price in rows:
+            fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -40% to +20%
+            new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
+            self.c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
+
+        self.conn.commit()
+        print("🔄 Resource prices updated!")
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -220,6 +234,8 @@ async def on_ready():
     if not scheduler.running:
         scheduler.add_job(distribute_ubi, "cron", hour=5, minute=0)  # 12am EST (5am UTC)
         scheduler.add_job(distribute_ubi, "cron", hour=17, minute=0)  # 12pm EST (5pm UTC)
+        scheduler.add_job(update_prices, "cron", hour=5, minute=0)
+        scheduler.add_job(update_prices, "cron", hour=17, minute=0)
         scheduler.start()
 
 # Test Ping Command

@@ -174,20 +174,6 @@ class Resources(commands.Cog):
         embed.add_field(name="Cost", value=f"${cost:.2f}", inline=True)
         await ctx.send(embed=embed)
         
-    @tasks.loop(hours=24)
-    async def update_prices(self):
-        """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
-        self.c.execute("SELECT district, price_per_unit FROM resources")
-        rows = self.c.fetchall()
-
-        for district, price in rows:
-            fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -40% to +20%
-            new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
-            self.c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
-
-        self.conn.commit()
-        print("🔄 Resource prices updated!")
-        
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
