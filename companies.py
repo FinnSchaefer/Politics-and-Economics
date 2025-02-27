@@ -162,7 +162,7 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command(aliases=["ps"])
-    async def private_sale(self, ctx, company:str, user=discord.Member, shares= int, price = float):
+    async def private_sale(self, ctx, company:str, shares: int, price: float, user=discord.Member):
         """Proposes a private sale of shares of a company to another user."""
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
@@ -171,11 +171,10 @@ class Companies(commands.Cog):
             company = ticker_result[0]
         
         owner_id = ctx.author.id
-        print("here")
         if shares <= 0:
             await ctx.send("⚠️ You must sell a positive amount of shares.")
             return
-        
+        print("here")
         if price <= 0:
             await ctx.send("⚠️ You must sell shares for a positive price.")
             return
