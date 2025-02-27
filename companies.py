@@ -125,7 +125,7 @@ class Companies(commands.Cog):
                 )
         await ctx.send(embed=emb)
     
-    @commands.command()
+    @commands.command(aliases=["isp"])
     async def issue_private_shares(self, ctx, company_name: str, new_shares: int):
         """Issues new shares to a private company."""
         sender_id = ctx.author.id      
@@ -156,7 +156,7 @@ class Companies(commands.Cog):
         embed.add_field(name="New Shares Issued", value=new_shares, inline=False)
         await ctx.send(embed=embed)
     
-    @commands.command()
+    @commands.command(aliases=["ps"])
     async def private_sale(self, ctx, company:str, user=discord.Member, shares= int, price = float):
         """Proposes a private sale of shares of a company to another user."""
         owner_id = ctx.author.id
