@@ -151,6 +151,13 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ The ticker symbol must be a maximum of 4 letters.")
             return
         
+        self.c.execute("SELECT ticker FROM companies WHERE ticker = ?", (ticker,))
+        existing_ticker = self.c.fetchone()
+        
+        if existing_ticker:
+            await ctx.send("⚠️ This ticker symbol is already in use.")
+            return
+        
         self.c.execute("SELECT is_public, shares_available, total_shares FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
         company = self.c.fetchone()
         
@@ -167,7 +174,6 @@ class Companies(commands.Cog):
         
         self.c.execute("UPDATE companies SET is_public = 1, shares_available = 0 WHERE name = ?", (company_name,))
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (sender_id, company_name, shares_available, shares_available))
-        self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
         self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company_name))
         self.conn.commit()
         
