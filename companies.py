@@ -429,7 +429,11 @@ class Companies(commands.Cog):
             autotext.set_weight('bold')
         
         # Add a legend
-        ax.legend(wedges, labels, title="Shareholders", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+        # Filter out shareholders with less than 5% shares for the legend
+        legend_labels = [label for label, size in zip(labels, sizes) if size / sum(sizes) >= 0.05]
+        legend_wedges = [wedge for wedge, size in zip(wedges, sizes) if size / sum(sizes) >= 0.05]
+        
+        ax.legend(legend_wedges, legend_labels, title="Shareholders", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
         # Save pie chart to image
         buffer = io.BytesIO()
