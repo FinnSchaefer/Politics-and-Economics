@@ -402,9 +402,10 @@ class Companies(commands.Cog):
         labels = []
         sizes = []
         for shareholder_id, shares in ownership_data:
-            user = self.bot.get_user(shareholder_id)
-            self.c.execute("SELECT name FROM companies WHERE company_id = ?", (shareholder_id,))
-            company_name = self.c.fetchone()
+            if shares > 0:
+                user = self.bot.get_user(shareholder_id)
+                self.c.execute("SELECT name FROM companies WHERE company_id = ?", (shareholder_id,))
+                company_name = self.c.fetchone()
             if company_name:
                 labels.append(company_name[0])
             else:
@@ -412,8 +413,9 @@ class Companies(commands.Cog):
             sizes.append(shares)
         
         # Add outstanding shares to the pie chart
-        labels.append("Floating Shares")
-        sizes.append(shares_available)
+        if shares_available > 0:
+            labels.append("Floating Shares")
+            sizes.append(shares_available)
         
         # Create pie chart
         fig, ax = plt.subplots()
@@ -646,6 +648,8 @@ class Companies(commands.Cog):
     async def buy_shares(self, ctx, company_name: str, amount: int):
         """Allows users to buy shares in a public company, with corporate tax applied."""
         user_id = ctx.author.id
+        new_owner = False
+
         
         self.c.execute("SELECT balance, shares_available, total_shares, is_public FROM companies WHERE name = ?", (company_name,))
         company = self.c.fetchone()
@@ -667,10 +671,6 @@ class Companies(commands.Cog):
         if(amount > shares_available):
             await ctx.send("⚠️ There are not enough shares available to buy this amount.")
             return
-        
-        
-        self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ? ORDER BY shares DESC LIMIT 1", (company_name,))
-        prevlarge_shareholder = self.c.fetchone()
         
         total_cost = 0
         for _ in range(amount):
@@ -698,6 +698,7 @@ class Companies(commands.Cog):
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (tax,))
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user_id, company_name, amount, amount))
         self.conn.commit()
+        
         self.c.execute("SELECT owner_id, shares FROM ownership WHERE company_name = ? ORDER BY shares DESC LIMIT 1", (company_name,))
         largest_shareholder = self.c.fetchone()
         if largest_shareholder and largest_shareholder[0] == user_id:
