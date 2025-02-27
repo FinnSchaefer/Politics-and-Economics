@@ -201,7 +201,7 @@ async def help(ctx, menu: str = None):
         embed.add_field(
             name="🌿 **Resource Commands**",
             value=(
-            "`harvest [Company] [Resource]` → Mine a resource.\n"
+            "`harvest [Company] [Amount]` → Mine the districts assigned resource.\n"
             "`cr` → Check current resource price and amounts left to harvest.\n"
             "`cor [Company]` → Trade resources with another user.\n"
             ),
