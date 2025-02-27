@@ -351,6 +351,14 @@ class Resources(commands.Cog):
             await ctx.send("⚠️ Not enough balance to buy the resources.")
             return
         
+        # Get the district from the resource being bought
+        self.c.execute("SELECT district FROM resources WHERE resource = ?", (resource,))
+        district_row = self.c.fetchone()
+        if not district_row:
+            await ctx.send("⚠️ District not found for the resource.")
+            return
+        district = district_row[0]
+        
         balance = balance_row[0]
         total_cost = amount * price_per_unit
 
@@ -373,7 +381,7 @@ class Resources(commands.Cog):
             self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         else:
             print("here4")
-            self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile, district) VALUES (?, ?, ?, ?)", (company_id, resource, amount, None))
+            self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile, district) VALUES (?, ?, ?, ?)", (company_id, resource, amount, district))
         print("here5")
         self.conn.commit()
         
