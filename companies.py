@@ -166,9 +166,15 @@ class Companies(commands.Cog):
     @commands.command()
     async def add_ticker(self, ctx):
         """inserts the ticker column into the companies table"""
-        self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
-        self.conn.commit()
-        await ctx.send("Ticker column added to companies table.")
+        try:
+            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
+            self.conn.commit()
+            await ctx.send("Ticker column added to companies table.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e):
+                await ctx.send("Ticker column already exists in companies table.")
+            else:
+                raise
 
     @commands.command(aliases=["send2c","s2c"])
     async def send_to_company(self, ctx, company: str, amount: float):
