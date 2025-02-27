@@ -1,6 +1,7 @@
 import discord
 import sqlite3
 import json
+import asyncio
 from discord.ext import commands
 import matplotlib.pyplot as plt
 import io
@@ -125,18 +126,110 @@ class Companies(commands.Cog):
         await ctx.send(embed=emb)
     
     @commands.command()
-    async def give_shares(self, ctx):
-        """If a user has 0 shares in a company and it still is in the ownership table delete that entry"""
-        self.c.execute("SELECT owner_id, company_name FROM ownership WHERE shares = 0")
-        ownerships = self.c.fetchall()
+    async def issue_private_shares(self, ctx, company_name: str, new_shares: int):
+        """Issues new shares to a private company."""
+        sender_id = ctx.author.id      
         
-        for owner_id, company_name in ownerships:
-            self.c.execute("DELETE FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company_name))
+        self.c.execute("SELECT balance, total_shares, is_public FROM companies WHERE name = ? AND owner_id = ?", (company_name, sender_id))
+        company = self.c.fetchone()
         
+        if not company:
+            await ctx.send("⚠️ You do not own this company or it does not exist.")
+            return
+        
+        balance, total_shares, is_public = company
+        
+        if is_public:
+            await ctx.send("⚠️ This company must be privately held before issuing new shares.")
+            return
+        
+        if new_shares <= 0:
+            await ctx.send("⚠️ You must issue a positive amount of shares.")
+            return
+        
+        self.c.execute("UPDATE companies SET total_shares = total_shares + ? WHERE name = ?", (new_shares, company_name))
+        self.c.execute("UPDATE ownership SET shares = shares + ? WHERE owner_id = ? AND company_name = ?", (new_shares, sender_id, company_name))
         self.conn.commit()
         
-        await ctx.send("✅ Ownership table cleaned up.")
+        embed = discord.Embed(title="📈 Shares Issued", color=discord.Color.blue())
+        embed.add_field(name="Company", value=company_name, inline=False)
+        embed.add_field(name="New Shares Issued", value=new_shares, inline=False)
+        await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def private_sale(self, ctx, company:str, user=discord.Member, shares= int, price = float):
+        """Proposes a private sale of shares of a company to another user."""
+        owner_id = ctx.author.id
+        if shares <= 0:
+            await ctx.send("⚠️ You must sell a positive amount of shares.")
+            return
         
+        if price <= 0:
+            await ctx.send("⚠️ You must sell shares for a positive price.")
+            return
+        
+        self.c.execute("SELECT name FROM companies WHERE owner_id = ? AND name = ?", (owner_id, company))
+        company_data = self.c.fetchone()
+        
+        if not company_data:
+            await ctx.send("⚠️ You do not own this company or it does not exist.")
+            return
+        
+        self.c.execute("SELECT shares FROM ownership WHERE owner_id = ? AND company_name = ?", (owner_id, company))
+        owner_shares = self.c.fetchone()
+        
+        if not owner_shares or owner_shares[0] < shares:
+            await ctx.send(f"⚠️ You do not own enough shares to sell {shares} shares.")
+            return
+        
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user.id,))
+        user_balance = self.c.fetchone()
+        
+        total_price = shares * price
+        
+        if not user_balance or user_balance[0] < total_price:
+            await ctx.send(f"⚠️ {user.mention} does not have enough funds to purchase these shares.")
+            return
+        
+        await ctx.send(f"{user.mention}, {ctx.author.mention} is proposing to sell {shares} shares of **{company}** to you for ${total_price:.2f}. Type 'yes' to accept or 'no' to decline.")
+        
+        def check(m):
+            return m.author == user and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
+        
+        try:
+            msg = await self.bot.wait_for('message', check=check, timeout=60.0)
+        except asyncio.TimeoutError:
+            embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
+            embed.add_field(name="Message", value="The private sale has been cancelled.", inline=False)
+            await ctx.send(embed=embed)
+            return
+        
+        if msg.content.lower() == "no":
+            embed = discord.Embed(title="❌ Private Sale Declined", color=discord.Color.red())
+            embed.add_field(name="Message", value="The private sale has been declined.", inline=False)
+            await ctx.send(embed=embed)
+            return
+        
+        self.c.execute("SELECT capital_gains_rate FROM tax_rate")
+        capital_gains_rate = self.c.fetchone()[0]
+        tax = (total_price * capital_gains_rate)
+        user_gain = total_price - tax
+        
+        # Transfer shares and update balances
+        self.c.execute("UPDATE ownership SET shares = shares - ? WHERE owner_id = ? AND company_name = ?", (shares, owner_id, company))
+        self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?) ON CONFLICT(owner_id, company_name) DO UPDATE SET shares = shares + ?", (user.id, company, shares, shares))
+        self.c.execute("UPDATE users SET balance = balance - ? WHERE user_id = ?", (total_price, user.id))
+        self.c.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (user_gain, owner_id))
+        self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ? WHERE user_id = ?", (tax, user.id))
+        self.conn.commit()
+        
+        embed = discord.Embed(title="✅ Private Sale Accepted", color=discord.Color.green())
+        embed.add_field(name="Buyer", value=user.mention, inline=True)
+        embed.add_field(name="Seller", value=ctx.author.mention, inline=True)
+        embed.add_field(name="Company", value=company, inline=True)
+        embed.add_field(name="Shares", value=shares, inline=True)
+        embed.add_field(name="Total Price", value=f"${total_price:.2f}", inline=True)
+        await ctx.send(embed=embed)
     
     @commands.command()
     @commands.has_role("RP Admin")
