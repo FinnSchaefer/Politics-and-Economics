@@ -38,7 +38,6 @@ class Resources(commands.Cog):
             FOREIGN KEY (comp_id) REFERENCES companies (company_id)
         )
         """)
-        self.c.execute("DROP TABLE IF EXISTS natinal_market")
         self.conn.commit()
 
         # Initial resource assignments
