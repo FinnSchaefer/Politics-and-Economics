@@ -162,7 +162,7 @@ class Companies(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command(aliases=["ps"])
-    async def private_sale(self, ctx, company:str, shares: int, price: float, user=discord.Member):
+    async def private_sale(self, ctx, company: str, shares: int, price: float, user: discord.Member):
         """Proposes a private sale of shares of a company to another user."""
         self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
         ticker_result = self.c.fetchone()
