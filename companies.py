@@ -89,8 +89,8 @@ class Companies(commands.Cog):
             if comp[3]:
                 self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
                 ticker_result = self.c.fetchone()
-                if ticker_result:
-                    ticker = ": {ticker_result[0]}"
+                if ticker_result != None:
+                    ticker = ": " + ticker_result[0]
                 else:
                     ticker = ""
                 # If the company is public
@@ -114,8 +114,8 @@ class Companies(commands.Cog):
                 # If the company is private
                 self.c.execute("SELECT ticker FROM companies WHERE name = ?", (comp[0],))
                 ticker_result = self.c.fetchone()
-                if ticker_result:
-                    ticker = ": {ticker_result[0]}"
+                if ticker_result != None:
+                    ticker = ": " + ticker_result[0]
                 else:
                     ticker = ""
                 emb.add_field(
