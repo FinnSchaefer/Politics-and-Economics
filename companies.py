@@ -200,7 +200,14 @@ class Companies(commands.Cog):
             await ctx.send(f"⚠️ {user.mention} does not have enough funds to purchase these shares.")
             return
         
-        await ctx.send(f"{user.mention}, {ctx.author.mention} is proposing to sell {shares} shares of **{company}** to you for ${total_price:.2f}. Type 'yes' to accept or 'no' to decline.")
+        embed = discord.Embed(title="📈 Private Sale Proposal", color=discord.Color.blue())
+        embed.add_field(name="Seller", value=ctx.author.mention, inline=True)
+        embed.add_field(name="Buyer", value=user.mention, inline=True)
+        embed.add_field(name="Company", value=company, inline=True)
+        embed.add_field(name="Shares", value=shares, inline=True)
+        embed.add_field(name="Total Price", value=f"${total_price:.2f}", inline=True)
+        embed.set_footer(text="Type 'yes' to accept or 'no' to decline.")
+        await ctx.send(embed=embed)
         
         def check(m):
             return m.author == user and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
@@ -238,6 +245,7 @@ class Companies(commands.Cog):
         embed.add_field(name="Company", value=company, inline=True)
         embed.add_field(name="Shares", value=shares, inline=True)
         embed.add_field(name="Total Price", value=f"${total_price:.2f}", inline=True)
+        embed.add_field(name="Capital Gains Tax for Seller", value=f"${tax:.2f}", inline=True)
         await ctx.send(embed=embed)
     
     @commands.command()
