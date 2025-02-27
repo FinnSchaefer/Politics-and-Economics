@@ -312,15 +312,11 @@ class Resources(commands.Cog):
         self.c.execute("DELETE FROM national_market WHERE amount = 0")
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (taxed_amount,))
         self.c.execute("SELECT stockpile FROM company_resources WHERE comp_id = ? AND resource = ?", (company_id, resource))
-        print("here2")
         company_stockpile = self.c.fetchone()
         if company_stockpile:
-            print("here3")
             self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
         else:
-            print("here4")
             self.c.execute("INSERT INTO company_resources (comp_id, resource, stockpile, district) VALUES (?, ?, ?, ?)", (company_id, resource, amount, district))
-        print("here5")
         self.conn.commit()
         
         embed = discord.Embed(title="✅ Resource Purchased", color=discord.Color.green())
