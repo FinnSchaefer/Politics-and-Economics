@@ -163,23 +163,12 @@ class Companies(commands.Cog):
         embed.add_field(name="Message", value=f"{company_name} is now publicly traded on the stock exchange! All available shares have been assigned to {ctx.author.name}.", inline=False)
         await ctx.send(embed=embed)
 
-
     @commands.command()
-    async def add_ticker(self, ctx, company: str, ticker: str):
-        if len(ticker) > 4:
-            await ctx.send("⚠️ The ticker symbol must be a maximum of 4 letters.")
-            return
-        self.c.execute("PRAGMA table_info(companies)")
-        columns = [info[1] for info in self.c.fetchall()]
-        if "ticker" not in columns:
-            self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
-        self.c.execute("UPDATE companies SET ticker = ? WHERE name = ?", (ticker, company))
+    async def add_ticker(self, ctx):
+        """inserts the ticker column into the companies table"""
+        self.c.execute("ALTER TABLE companies ADD COLUMN ticker TEXT UNIQUE")
         self.conn.commit()
-        
-        embed = discord.Embed(title="✅ Ticker Symbol Added", color=discord.Color.green())
-        embed.add_field(name="Company", value=company, inline=False)
-        embed.add_field(name="Ticker", value=ticker, inline=False)
-        await ctx.send(embed=embed)
+        await ctx.send("Ticker column added to companies table.")
 
     @commands.command(aliases=["send2c","s2c"])
     async def send_to_company(self, ctx, company: str, amount: float):
