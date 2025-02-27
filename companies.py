@@ -92,7 +92,7 @@ class Companies(commands.Cog):
                 if ticker_result:
                     ticker = ticker_result[0]
                 else:
-                    ticker = "N/A"
+                    ticker = ""
                 # If the company is public
                 if comp_val > 0:
                     price_per_share = comp_val / comp[4]
@@ -117,7 +117,7 @@ class Companies(commands.Cog):
                 if ticker_result:
                     ticker = ticker_result[0]
                 else:
-                    ticker = "N/A"
+                    ticker = ""
                 emb.add_field(
                     name=f"🏢 {comp[0]}: {ticker}",
                     value=(
