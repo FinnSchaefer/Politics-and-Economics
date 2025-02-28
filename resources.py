@@ -81,6 +81,7 @@ class Resources(commands.Cog):
         
         if ticker_result:
             company = ticker_result[0]
+            
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
         company_row = self.c.fetchone()
         if not company_row:
@@ -105,6 +106,7 @@ class Resources(commands.Cog):
                 return
             price = price_row[0]
             embed.add_field(
+            name=f"🏙️ {company}'s Held Resources",
             value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
             inline=False
             )
