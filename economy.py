@@ -363,6 +363,8 @@ class Economy(commands.Cog):
         
         channel = self.bot.get_channel(1345074664850067527)  # Replace with your channel ID
     
+        print("here")
+    
         if scomp and rcomp:
             # Check if the sender company has enough balance
             self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (sender,))
