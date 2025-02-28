@@ -5,7 +5,7 @@ from discord.ext import commands
 class News(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
+        
     @commands.command()
     @commands.has_role("News")
     async def story(self, ctx, title: str, story: str):
@@ -17,3 +17,6 @@ class News(commands.Cog):
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         embed.set_footer(text="Posted on " + ctx.message.created_at.strftime("%m/%d/%Y, %H:%M:%S"))
         await channel.send(embed=embed)
+    
+    async def setup(bot):
+       await bot.add_cog(News(bot))
