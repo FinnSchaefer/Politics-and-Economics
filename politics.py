@@ -90,9 +90,9 @@ class Politics(commands.Cog):
             return
 
         # Ensure user is added to the database with a default balance
-        self.c.execute("INSERT INTO users (user_id, balance, district, last_move) VALUES (?, ?, ?, ?)", (user_id, 500, district, datetime.datetime.now().strftime("%Y-%m-%d")))
+        self.c.execute("INSERT INTO users (user_id, balance, district, last_move) VALUES (?, ?, ?, ?)", (user_id, 1000, district, datetime.datetime.now().strftime("%Y-%m-%d")))
         self.conn.commit()
-        print(f"✅ New user {user_id} added to the database with $500 balance.")
+        print(f"✅ New user {user_id} added to the database with $1000 balance.")
 
         role = discord.utils.get(ctx.guild.roles, name=district)
         if role:
