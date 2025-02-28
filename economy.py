@@ -354,7 +354,7 @@ class Economy(commands.Cog):
         if receiver_user:
             receiver_id = receiver_user[0]
             ruser = True
-        
+        print("here4")
         if not sender_id or not receiver_id:
             await ctx.send("⚠️ Invalid sender or receiver.")
             return
