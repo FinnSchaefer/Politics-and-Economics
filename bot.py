@@ -215,15 +215,15 @@ async def help(ctx, menu: str = None):
             inline=False
         )
         
-        if menu == "n":
-        # 📰 News Commands
-            embed.add_field(
-                name="📰 **News Commands**",
-                value=(
-                    "`story [Title] [Story]` → Post a news story. Requires the News role.\n"
-                ),
-                inline=False
-            )
+    if menu == "n":
+    # 📰 News Commands
+        embed.add_field(
+            name="📰 **News Commands**",
+            value=(
+                "`story [Title] [Story]` → Post a news story. Requires the News role.\n"
+            ),
+            inline=False
+        )
 
     # 🔧 Other Commands
     embed.add_field(
