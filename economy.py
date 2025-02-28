@@ -331,7 +331,8 @@ class Economy(commands.Cog):
         if ticker_result:
             sender = ticker_result[0]
             scomp = True
-            
+        
+        print("here1") 
         self.c.execute("SELECT company_id FROM companies WHERE ticker = ?", (receiver,))
         ticker_result = self.c.fetchone()
         
@@ -339,8 +340,11 @@ class Economy(commands.Cog):
             receiver = ticker_result[0]
             rcomp = True
         
+        
         self.c.execute("SELECT user_id FROM users WHERE name = ?", (sender,))
         sender_user = self.c.fetchone()
+        
+        print("here2")
         
         if sender_user:
             sender = sender_user[0]
