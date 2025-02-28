@@ -54,6 +54,22 @@ def setup_database():
         last_move TEXT
     )
     """)
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS foreign_nations(
+        nation TEXT PRIMARY KEY,
+        balance REAL DEFAULT 0.0
+    )
+    """)
+    conn.commit()
+
+    nations = [
+        ("Switzerland", 20000.0),
+        ("France", 35000.0),
+        ("Germany", 30000.0),
+        ("Italy", 25000.0),
+        ("Spain", 20000.0)
+    ]
+    c.executemany("INSERT OR IGNORE INTO foreign_nations (nation, balance) VALUES (?, ?)", nations)
     conn.commit()
 
 setup_database()
@@ -71,7 +87,7 @@ async def update_prices():
     rows = c.fetchall()
     price_change = []
     for district, price in rows:
-        fluctuation = random.uniform(-0.10, 0.15)  # Prices change by -5% to +15%
+        fluctuation = random.uniform(-0.10, 0.15)  # Prices change by -10% to +15%
         new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
         price_change.append((district, new_price - price))
         c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
@@ -91,6 +107,8 @@ async def update_prices():
             embed.add_field(name=f"📉 **{district}**", value=f"Decreased by ${-change:.2f}", inline=False)
     await channel.send(embed=embed)
     
+async def random_international_buyers():
+    pass       
 
 @bot.command()
 @commands.has_permissions(administrator=True)

@@ -350,6 +350,7 @@ class Resources(commands.Cog):
             inline=False
             )
         await ctx.send(embed=embed)
+            
         
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
