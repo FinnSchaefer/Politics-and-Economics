@@ -64,19 +64,33 @@ async def distribute_ubi():
     """Function to distribute Universal Basic Income (UBI) daily."""
     c.execute("UPDATE users SET balance = balance + 500")
     conn.commit()
-    
+
 async def update_prices():
-    """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
+    """track price changes over a 12 hour period and post news about the 5 biggest movers"""
     c.execute("SELECT district, price_per_unit FROM resources")
     rows = c.fetchall()
-
+    price_change = []
     for district, price in rows:
-        fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -10% to +10%
+        fluctuation = random.uniform(-0.10, 0.15)  # Prices change by -5% to +15%
         new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
+        price_change.append((district, new_price - price))
         c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
-
     conn.commit()
-    print("🔄 Resource prices updated!")
+    price_change.sort(key=lambda x: x[1], reverse=True)
+    channel = bot.get_channel(1344821784733552691)
+    embed = discord.Embed(
+        title="📈 **Market News** 📉",
+        description="Here are the top 5 biggest price movers for resources:",
+        color=discord.Color.blue()
+    )
+    for i in range(5):
+        district, change = price_change[i]
+        if change > 0:
+            embed.add_field(name=f"📈 **{district}**", value=f"Increased by ${change:.2f}", inline=False)
+        else:
+            embed.add_field(name=f"📉 **{district}**", value=f"Decreased by ${-change:.2f}", inline=False)
+    await channel.send(embed=embed)
+    
 
 @bot.command()
 @commands.has_permissions(administrator=True)

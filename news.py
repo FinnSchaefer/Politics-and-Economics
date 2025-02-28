@@ -25,7 +25,8 @@ class News(commands.Cog):
             await ctx.send("You can only use this command in #post-news-here.")
             return
         channel = self.bot.get_channel(1344821784733552691)
-        await ctx.channel.send("<@1343377032754630656>")
+        role = discord.utils.get(ctx.guild.roles, name="RP Ping")
+        await channel.send(f"📢 **New Event!** 📢 {role.mention}")
         embed = discord.Embed(title=title, description=event, color=discord.Color.blue())
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
         embed.set_footer(text="Posted on " + ctx.message.created_at.strftime("%m/%d/%Y, %H:%M:%S"))
