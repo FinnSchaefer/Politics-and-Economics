@@ -18,5 +18,5 @@ class News(commands.Cog):
         embed.set_footer(text="Posted on " + ctx.message.created_at.strftime("%m/%d/%Y, %H:%M:%S"))
         await channel.send(embed=embed)
     
-    async def setup(bot):
-       await bot.add_cog(News(bot))
+async def setup(bot):
+    await bot.add_cog(News(bot))
