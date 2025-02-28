@@ -704,6 +704,26 @@ class Companies(commands.Cog):
             return balance + total_stock_value
         return 0
         
+    @commands.command(aliases=['cboard'])
+    async def company_leader_board(self, ctx):
+        """displays a leader board based on total value of a company's assets"""
+        self.c.execute("SELECT name FROM companies")
+        rows = self.c.fetchall()
+        if not rows:
+            await ctx.send("⚠️ No companies found.")
+            return
+        company_values = []
+        for row in rows:
+            company_name = row[0]
+            value = await self.calc_stock_value(company_name)
+            company_values.append((company_name, value))
+        
+        company_values.sort(key=lambda x: x[1], reverse=True)
+        embed = discord.Embed(title="💰 Top 5 Wealthiest Companies", color=discord.Color.green())
+        for i, (company_name, value) in enumerate(company_values[:5], start=1):
+            embed.add_field(name=f"{i}. {company_name}", value=f"${value:.2f}", inline=False)
+        await ctx.send(embed=embed)
+        
     @commands.command(aliases=["cbs"])
     async def company_buy_shares(self, ctx, purchaser_company: str, stock: str, amount: int):
         """Allows companies to buy shares in another company."""
