@@ -329,7 +329,7 @@ class Economy(commands.Cog):
         ticker_result = self.c.fetchone()
         
         if ticker_result:
-            sender = ticker_result[0]
+            sender_id = ticker_result[0]
             scomp = True
         
         print("here1") 
@@ -337,7 +337,7 @@ class Economy(commands.Cog):
         ticker_result = self.c.fetchone()
         
         if ticker_result:
-            receiver = ticker_result[0]
+            receiver_id = ticker_result[0]
             rcomp = True
         
         
@@ -347,17 +347,17 @@ class Economy(commands.Cog):
         print("here2")
         
         if sender_user:
-            sender = sender_user[0]
+            sender_id = sender_user[0]
             suser = True
         
         self.c.execute("SELECT user_id FROM users WHERE name = ?", (receiver,))
         receiver_user = self.c.fetchone()
         
         if receiver:
-            receiver = receiver_user[0]
+            receiver_id = receiver_user[0]
             ruser = True
         
-        if not sender or not receiver:
+        if not sender_id or not receiver_id:
             await ctx.send("⚠️ Invalid sender or receiver.")
             return
         
