@@ -147,12 +147,6 @@ async def random_international_buyers():
             await channel.send(embed=embed)
 
 @bot.command()
-async def force_buy(ctx):
-    """Manually triggers the international purchase of a resource."""
-    await random_international_buyers()
-    await ctx.send("International purchase completed.")
-
-@bot.command()
 @commands.has_permissions(administrator=True)
 async def clear(ctx):
     """Clears all messages in the current channel."""
