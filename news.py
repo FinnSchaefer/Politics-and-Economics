@@ -14,7 +14,7 @@ class News(commands.Cog):
             return
         channel = self.bot.get_channel(1344821784733552691)
         embed = discord.Embed(title=title, description=story, color=discord.Color.green())
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
         embed.set_footer(text="Posted on " + ctx.message.created_at.strftime("%m/%d/%Y, %H:%M:%S"))
         await channel.send(embed=embed)
     
