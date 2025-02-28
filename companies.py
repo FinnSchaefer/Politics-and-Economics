@@ -60,11 +60,15 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ You already own a company.")
             return
         
+        print('here')
         self.c.execute("INSERT INTO companies (owner_id, name, balance) VALUES (?, ?, ?)", (owner_id, company_name, 1000))
         self.c.execute("UPDATE users SET balance = balance - 1000 WHERE user_id = ?", (owner_id,))
+        print('here')
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?)", (owner_id, company_name, 100))
+        print('here')
         self.conn.commit()
         self.c.execute("UPDATE companies SET shares_available = shares_available - 100 WHERE name = ?", (company_name,))
+        print('here')
         self.conn.commit()
         
         await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
