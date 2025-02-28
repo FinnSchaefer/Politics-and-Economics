@@ -65,18 +65,18 @@ async def distribute_ubi():
     c.execute("UPDATE users SET balance = balance + 500")
     conn.commit()
     
-async def update_prices(self):
-        """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
-        self.c.execute("SELECT district, price_per_unit FROM resources")
-        rows = self.c.fetchall()
+async def update_prices():
+    """Randomly adjusts resource prices every 24 hours to simulate market fluctuation."""
+    c.execute("SELECT district, price_per_unit FROM resources")
+    rows = c.fetchall()
 
-        for district, price in rows:
-            fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -40% to +20%
-            new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
-            self.c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
+    for district, price in rows:
+        fluctuation = random.uniform(-0.1, 0.1)  # Prices change by -10% to +10%
+        new_price = max(5, price * (1 + fluctuation))  # Ensure price never drops below $5
+        c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
 
-        self.conn.commit()
-        print("🔄 Resource prices updated!")
+    conn.commit()
+    print("🔄 Resource prices updated!")
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -240,6 +240,14 @@ async def help(ctx, menu: str = None):
     embed.set_footer(text="Use the commands wisely to shape your world!")
     
     await ctx.send(embed=embed)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def force_ubi(ctx):
+    """Manually triggers the UBI distribution."""
+    await distribute_ubi()
+    await update_prices()
+    await ctx.send("Universal Basic Income distributed.")
 
 @bot.event
 async def on_ready():
