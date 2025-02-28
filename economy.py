@@ -341,10 +341,11 @@ class Economy(commands.Cog):
             rcomp = True
         
         print("here2")
-        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
+        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender,))
         sender_user = self.c.fetchone()
         
         if sender_user:
+            sender_id = sender_user[0]
             suser = True
         print("here3")
         self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver,))
