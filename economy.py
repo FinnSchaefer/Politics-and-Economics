@@ -347,7 +347,7 @@ class Economy(commands.Cog):
         if sender_user:
             sender_id = sender_user[0]
             suser = True
-        
+        print("here3")
         self.c.execute("SELECT user_id FROM users WHERE name = ?", (receiver,))
         receiver_user = self.c.fetchone()
         
