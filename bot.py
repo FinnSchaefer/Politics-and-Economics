@@ -29,6 +29,7 @@ class MyBot(commands.Bot):
             await self.load_extension("politics")
             await self.load_extension("companies")
             await self.load_extension("resources")
+            await self.load_extension("news")
             print("Cogs loaded successfully.")
         except Exception as e:
             print(f"Error loading cogs: {e}")
@@ -213,12 +214,22 @@ async def help(ctx, menu: str = None):
             ),
             inline=False
         )
+        
+        if menu == "n":
+        # 📰 News Commands
+            embed.add_field(
+                name="📰 **News Commands**",
+                value=(
+                    "`story [Title] [Story]` → Post a news story.\n"
+                ),
+                inline=False
+            )
 
     # 🔧 Other Commands
     embed.add_field(
         name="🔧 **Other Commands**",
         value=(
-            "`help [c, e, g, p, r, v]` → Company, Economy, Gambling, Political, Resource, and Voting help menus.\n"
+            "`help [c, e, g, n, p, r, v]` → Company, Economy, Gambling, News, Political, Resource, and Voting help menus.\n"
             "`ping` → Pong!\n"
             "`about @user` → Displays info on yourself or others.\n"
             "`rp` → Assign the RP Ping role.\n"
