@@ -106,8 +106,8 @@ class Resources(commands.Cog):
                 return
             price = price_row[0]
             embed.add_field(
-            name=f"🏙️ {company}'s Held Resources",
-            value=f"🔹 **Resource:** {resource}\n📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
+            name=f"🔹 **Resource:** {resource}",
+            value=f"📦 **Stockpile:** {stockpile}\n💰 **Price per Unit:** ${price:.2f}",
             inline=False
             )
         await ctx.send(embed=embed)
