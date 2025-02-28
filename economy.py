@@ -351,7 +351,7 @@ class Economy(commands.Cog):
         self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver,))
         receiver_user = self.c.fetchone()
         
-        if receiver:
+        if receiver_user:
             receiver_id = receiver_user[0]
             ruser = True
         
