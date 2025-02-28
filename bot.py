@@ -220,7 +220,7 @@ async def help(ctx, menu: str = None):
             embed.add_field(
                 name="📰 **News Commands**",
                 value=(
-                    "`story [Title] [Story]` → Post a news story.\n"
+                    "`story [Title] [Story]` → Post a news story. Requires the News role.\n"
                 ),
                 inline=False
             )
