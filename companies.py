@@ -60,15 +60,11 @@ class Companies(commands.Cog):
             await ctx.send("⚠️ You already own a company.")
             return
         
-        print('here')
         self.c.execute("INSERT INTO companies (owner_id, name, balance) VALUES (?, ?, ?)", (owner_id, company_name, 1000))
         self.c.execute("UPDATE users SET balance = balance - 1000 WHERE user_id = ?", (owner_id,))
-        print('here')
         self.c.execute("INSERT INTO ownership (owner_id, company_name, shares) VALUES (?, ?, ?)", (owner_id, company_name, 100))
-        print('here')
         self.conn.commit()
         self.c.execute("UPDATE companies SET shares_available = shares_available - 100 WHERE name = ?", (company_name,))
-        print('here')
         self.conn.commit()
         
         await ctx.send(f"🏢 **{company_name}** has been created successfully with an initial balance of $1000!")
@@ -252,6 +248,9 @@ class Companies(commands.Cog):
         embed.add_field(name="Total Price", value=f"${total_price:.2f}", inline=True)
         embed.add_field(name="Capital Gains Tax for Seller", value=f"${tax:.2f}", inline=True)
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
     
     @commands.command()
     @commands.has_role("RP Admin")
@@ -304,6 +303,9 @@ class Companies(commands.Cog):
         embed.add_field(name="Ticker", value=ticker, inline=False)
         embed.add_field(name="Message", value=f"{company_name} is now publicly traded on the stock exchange! All available shares have been assigned to {ctx.author.name}.", inline=False)
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
 
     @commands.command()
     async def add_ticker(self, ctx, company: str, ticker: str):
@@ -485,6 +487,9 @@ class Companies(commands.Cog):
         embed.add_field(name="New Total Shares", value=new_total_shares, inline=False)
         embed.add_field(name="New Stock Price", value=f"${price_per_share:.2f} per share", inline=False)
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
     
     @commands.command()
     async def appoint_board_member(self, ctx, company_name: str, member: discord.Member):
@@ -809,6 +814,9 @@ class Companies(commands.Cog):
         if new_owner:
             embed.add_field(name="New Owner", value=purchaser_company, inline=False)
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
 
     @commands.command(aliases=["css"])
     async def company_sell_shares(self, ctx, seller_company: str, stock: str, amount: int):
@@ -895,6 +903,9 @@ class Companies(commands.Cog):
         if new_owner:
             embed.add_field(name="New Owner", value=new_owner.mention, inline=False)
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
         
     @commands.command(aliases=["co"])
     async def company_ownership(self, ctx, company_name: str):
@@ -1009,6 +1020,9 @@ class Companies(commands.Cog):
             embed.add_field(name="New Owner", value=ctx.author.mention, inline=False)
             
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
 
 
 
@@ -1089,6 +1103,9 @@ class Companies(commands.Cog):
             embed.add_field(name="New Owner", value=new_owner.mention, inline=False)
         
         await ctx.send(embed=embed)
+        
+        channel = self.bot.get_channel(1345074664850067527)
+        await channel.send(embed=embed)
 
 
 async def setup(bot):

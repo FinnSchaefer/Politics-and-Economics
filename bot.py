@@ -118,7 +118,7 @@ async def random_international_buyers():
         return  # No items in the market
 
     for nation in nations:
-        if random.random() < 0.25:  # 25% chance
+        if random.random() < 0.10:  # 10% chance
             item = random.choice(market_items)
             comp_id, resource, amount, price_per_unit = item
             purchase_amount = random.randint(1, amount)
@@ -335,6 +335,8 @@ async def on_ready():
         scheduler.add_job(distribute_ubi, "cron", hour=17, minute=0)  # 12pm EST (5pm UTC)
         scheduler.add_job(update_prices, "cron", hour=5, minute=0)
         scheduler.add_job(update_prices, "cron", hour=17, minute=0)
+        scheduler.add_job(random_international_buyers, "cron", hour=5, minute=0)
+        scheduler.add_job(random_international_buyers, "cron", hour=17, minute=0)
         scheduler.start()
 
 # Test Ping Command
