@@ -304,5 +304,18 @@ class Economy(commands.Cog):
         embed.add_field(name="Government Balance Added", value=f"${tax_amount}", inline=True)
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def loan(self, ctx, sender: str, receiver: str, amount: float, interest: float):
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (sender,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            sender = ticker_result[0]
+            
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (receiver,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company_name = ticker_result[0]
 async def setup(bot):
     await bot.add_cog(Economy(bot))
