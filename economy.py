@@ -340,17 +340,17 @@ class Economy(commands.Cog):
             rcomp = True
         
         self.c.execute("SELECT user_id FROM users WHERE name = ?", (sender,))
-        sender = self.c.fetchone()
+        sender_user = self.c.fetchone()
         
-        if sender:
-            sender = sender[0]
+        if sender_user:
+            sender = sender_user[0]
             suser = True
         
         self.c.execute("SELECT user_id FROM users WHERE name = ?", (receiver,))
-        receiver = self.c.fetchone()
+        receiver_user = self.c.fetchone()
         
         if receiver:
-            receiver = receiver[0]
+            receiver = receiver_user[0]
             ruser = True
         
         if not sender or not receiver:
@@ -528,6 +528,16 @@ class Economy(commands.Cog):
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
             await channel.send(embed=embed)
           
+    @commands.command()
+    async def pay_loan(self, ctx, issuer: str, amount: float):
+        receiver = ctx.author.id
+        today = datetime.date.today()
+        self.c.execute("SELECT company_id FROM companies WHERE ticker = ?", (issuer,))
+        ticker_result = self.c.fetchone()
+        if ticker_result:
+            issuer = ticker_result[0]
         
+                
+
 async def setup(bot):
     await bot.add_cog(Economy(bot))
