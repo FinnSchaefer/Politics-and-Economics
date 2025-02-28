@@ -108,7 +108,49 @@ async def update_prices():
     await channel.send(embed=embed)
     
 async def random_international_buyers():
-    pass       
+    """Randomly selects a foreign nation to buy a resource from the national market."""
+    c.execute("SELECT nation FROM foreign_nations")
+    nations = c.fetchall()
+    c.execute("SELECT comp_id, resource, amount, price_per_unit FROM national_market")
+    market_items = c.fetchall()
+
+    if not market_items:
+        return  # No items in the market
+
+    for nation in nations:
+        if random.random() < 0.25:  # 25% chance
+            item = random.choice(market_items)
+            comp_id, resource, amount, price_per_unit = item
+            purchase_amount = random.randint(1, amount)
+            total_cost = purchase_amount * price_per_unit
+
+            # Update the market
+            c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (purchase_amount, comp_id, resource))
+            c.execute("DELETE FROM national_market WHERE amount <= 0")
+
+            # Update the company's balance
+            c.execute("UPDATE companies SET balance = balance + ? WHERE company_id = ?", (total_cost, comp_id))
+
+            # Update the foreign nation's balance
+            c.execute("UPDATE foreign_nations SET balance = balance - ? WHERE nation = ?", (total_cost, nation[0]))
+
+            conn.commit()
+            c.execute("SELECT name FROM companies WHERE company_id = ?", (comp_id,))
+            company = c.fetchone()
+            
+            channel = bot.get_channel(1345074664850067527)
+            embed = discord.Embed(
+                title="🌍 **International Trade** 🌍",
+                description=f"{nation[0]} has purchased {purchase_amount} units of {resource} from {company[0]} for ${total_cost:.2f}.",
+                color=discord.Color.green()
+            )
+            await channel.send(embed=embed)
+
+@bot.command()
+async def force_buy(ctx):
+    """Manually triggers the international purchase of a resource."""
+    await random_international_buyers()
+    await ctx.send("International purchase completed.")
 
 @bot.command()
 @commands.has_permissions(administrator=True)
