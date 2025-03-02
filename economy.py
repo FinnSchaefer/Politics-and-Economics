@@ -319,7 +319,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def loan(self, ctx, sender: str, receiver: str, amount: float, interest: float):
+    async def loan(self, ctx, sender: str | discord.Member, receiver: str | discord.Member, amount: float, interest: float):
         scomp = False
         rcomp = False
         suser = False
@@ -342,7 +342,8 @@ class Economy(commands.Cog):
         
         print("here2")
         if not scomp:
-            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender.id,))
+            sender_id = sender.id
+            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
             sender_user = self.c.fetchone()
             
             if sender_user:
@@ -350,8 +351,8 @@ class Economy(commands.Cog):
                 suser = True
         print("here3")
         if not rcomp:
-            receiver_id = int(receiver)
-            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id,))
+            receiver_id = receiver.id
+            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id))
             receiver_user = self.c.fetchone()
             
             if receiver_user:
