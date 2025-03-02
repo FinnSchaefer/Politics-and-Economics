@@ -325,8 +325,8 @@ class Economy(commands.Cog):
         suser = False
         ruser = False
         today = datetime.date.today()
-        print(sender)
-        print(receiver)
+        print(sender.id)
+        print(receiver.id)
         self.c.execute("SELECT company_id FROM companies WHERE ticker = ?", (sender,))
         ticker_result = self.c.fetchone()
         
