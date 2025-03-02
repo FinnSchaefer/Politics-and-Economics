@@ -341,21 +341,22 @@ class Economy(commands.Cog):
             rcomp = True
         
         print("here2")
-        sender_id = int(sender)
-        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
-        sender_user = self.c.fetchone()
-        
-        if sender_user:
-            sender = sender_id
-            suser = True
+        if not scomp:
+            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender.id,))
+            sender_user = self.c.fetchone()
+            
+            if sender_user:
+                sender = sender_id
+                suser = True
         print("here3")
-        receiver_id = int(receiver)
-        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id,))
-        receiver_user = self.c.fetchone()
-        
-        if receiver_user:
-            ruser = True
-            receiver = receiver_id
+        if not rcomp:
+            receiver_id = int(receiver)
+            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id,))
+            receiver_user = self.c.fetchone()
+            
+            if receiver_user:
+                ruser = True
+                receiver = receiver_id
         print("here4")
         if not sender_id or not receiver_id:
             await ctx.send("⚠️ Invalid sender or receiver.")
