@@ -328,12 +328,12 @@ class Economy(commands.Cog):
         
         if isinstance(sender, discord.Member):
             suser = True
-            print("here")
+            print("here user")
             sender_id = sender.id
             sender = sender_id
         if isinstance(receiver, discord.Member):
             ruser = True
-            print("here")
+            print("here user2")
             receiver_id = receiver.id
             receiver = receiver_id
         
@@ -361,9 +361,7 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ The amount and interest must be positive.")
             return
         
-        channel = self.bot.get_channel(1345074664850067527)  # Replace with your channel ID
-    
-        print("here")
+        channel = self.bot.get_channel(1343374601631043727)  # Replace with your channel ID
     
         if scomp and rcomp:
             # Check if the sender company has enough balance
@@ -507,13 +505,13 @@ class Economy(commands.Cog):
                 msg = await self.bot.wait_for('message', check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
-                embed.add_field(name="Message", value="The private sale has been cancelled.", inline=False)
+                embed.add_field(name="Message", value="The loan process has been cancelled.", inline=False)
                 await ctx.send(embed=embed)
                 return
             
             if msg.content.lower() == "no":
                 embed = discord.Embed(title="❌ Private Sale Declined", color=discord.Color.red())
-                embed.add_field(name="Message", value="The private sale has been declined.", inline=False)
+                embed.add_field(name="Message", value="The loan has been declined.", inline=False)
                 await ctx.send(embed=embed)
                 return
             # Insert the loan into the loans table
