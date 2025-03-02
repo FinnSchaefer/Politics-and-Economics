@@ -340,6 +340,9 @@ class Economy(commands.Cog):
             receiver_id = ticker_result[0]
             rcomp = True
         
+        print(scomp)
+        print(rcomp)
+        
         print("here2")
         if not scomp:
             sender_id = sender.id
