@@ -3,6 +3,7 @@ import sqlite3
 import random
 import datetime
 from discord.ext import commands
+from typing import Union
 import asyncio
 
 class Economy(commands.Cog):
@@ -319,7 +320,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def loan(self, ctx, sender: str | discord.Member, receiver: str | discord.Member, amount: float, interest: float):
+    async def loan(self, ctx, sender: Union[str, discord.Member], receiver: Union[str, discord.Member], amount: float, interest: float):
         scomp = False
         rcomp = False
         suser = False
