@@ -503,9 +503,10 @@ class Economy(commands.Cog):
                 return
             # Ask the receiver user if they want to proceed with the loan
             print("here")
-            await channel_id.send(f"{receiver.mention}, do you want to proceed with the loan? (yes/no)")
+            receiver_member = self.bot.get_user(receiver)
+            await ctx.send(f"{receiver_member.mention}, do you want to proceed with the loan? (yes/no)")
             def check(m):
-                return m.author == receiver and m.channel == channel_id.channel and m.content.lower() in ["yes", "no"]
+                return m.author == receiver_member and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
         
             try:
                 msg = await self.bot.wait_for('message', check=check, timeout=60.0)
