@@ -328,10 +328,12 @@ class Economy(commands.Cog):
         
         if isinstance(sender, discord.Member):
             suser = True
+            print("here")
             sender_id = sender.id
             sender = sender_id
         if isinstance(receiver, discord.Member):
             ruser = True
+            print("here")
             receiver_id = receiver.id
             receiver = receiver_id
         
