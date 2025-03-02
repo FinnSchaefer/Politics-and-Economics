@@ -503,7 +503,7 @@ class Economy(commands.Cog):
                 return
             # Ask the receiver user if they want to proceed with the loan
             print("here")
-            await channel_id.send(f"{user.mention}, do you want to proceed with the loan? (yes/no)")
+            await channel_id.send(f"{receiver.mention}, do you want to proceed with the loan? (yes/no)")
             def check(m):
                 return m.author == receiver and m.channel == channel_id.channel and m.content.lower() in ["yes", "no"]
         
