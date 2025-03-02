@@ -342,7 +342,7 @@ class Economy(commands.Cog):
         
         print("here2")
         sender_id = int(sender)
-        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender,))
+        self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
         sender_user = self.c.fetchone()
         
         if sender_user:
