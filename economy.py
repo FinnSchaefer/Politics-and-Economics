@@ -319,7 +319,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def loan(self, ctx, sender: str | discord.Member, receiver: str | discord.Member, amount: float, interest: float):
+    async def loan(self, ctx, sender: discord.Member | str, receiver: discord.Member | str, amount: float, interest: float):
         scomp = False
         rcomp = False
         suser = False
