@@ -345,13 +345,16 @@ class Economy(commands.Cog):
         
         print("here2")
         if not scomp:
-            sender_id = sender.id
-            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
-            sender_user = self.c.fetchone()
-            
-            if sender_user:
-                sender = sender_id
-                suser = True
+            if isinstance(sender, discord.Member):
+                sender_id = sender.id
+                self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
+                sender_user = self.c.fetchone()
+                
+                if sender_user:
+                    sender = sender_id
+                    suser = True
+                    
+        print(suser)
         print("here3")
         if not rcomp:
             receiver_id = receiver.id
