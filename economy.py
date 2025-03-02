@@ -461,7 +461,7 @@ class Economy(commands.Cog):
             self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (receiver,))
             owner_id = self.c.fetchone()[0]
             user = self.bot.get_user(owner_id)
-            await ctx.send(f"{user.mention}, do you want to proceed with the loan? (yes/no)")
+            await channel_id.send(f"{user.mention}, do you want to proceed with the loan? (yes/no)")
 
             def check(m):
                 return m.author == user and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
@@ -502,6 +502,7 @@ class Economy(commands.Cog):
                 await ctx.send("⚠️ The sender user doesn't have enough balance to issue the loan.")
                 return
             # Ask the receiver user if they want to proceed with the loan
+            await channel_id.send(f"{user.mention}, do you want to proceed with the loan? (yes/no)")
             def check(m):
                 return m.author == receiver and m.channel == channel_id.channel and m.content.lower() in ["yes", "no"]
         
