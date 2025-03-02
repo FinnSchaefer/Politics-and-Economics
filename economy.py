@@ -325,8 +325,16 @@ class Economy(commands.Cog):
         suser = False
         ruser = False
         today = datetime.date.today()
-        print(sender.id)
-        print(receiver.id)
+        
+        if isinstance(sender, discord.Member):
+            suser = True
+            sender_id = sender.id
+            sender = sender_id
+        if isinstance(receiver, discord.Member):
+            ruser = True
+            receiver_id = receiver.id
+            receiver = receiver_id
+        
         self.c.execute("SELECT company_id FROM companies WHERE ticker = ?", (sender,))
         ticker_result = self.c.fetchone()
         
@@ -334,7 +342,6 @@ class Economy(commands.Cog):
             sender_id = ticker_result[0]
             scomp = True
         
-        print("here1") 
         self.c.execute("SELECT company_id FROM companies WHERE ticker = ?", (receiver,))
         ticker_result = self.c.fetchone()
         
@@ -342,31 +349,8 @@ class Economy(commands.Cog):
             receiver_id = ticker_result[0]
             rcomp = True
         
-        print(scomp)
-        print(rcomp)
+        print(sender, receiver)
         
-        print("here2")
-        if not scomp:
-            if isinstance(sender, discord.Member):
-                sender_id = sender.id
-                self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (sender_id,))
-                sender_user = self.c.fetchone()
-                
-                if sender_user:
-                    sender = sender_id
-                    suser = True
-                    
-        print(suser)
-        print("here3")
-        if not rcomp:
-            receiver_id = receiver.id
-            self.c.execute("SELECT user_id FROM users WHERE user_id = ?", (receiver_id))
-            receiver_user = self.c.fetchone()
-            
-            if receiver_user:
-                ruser = True
-                receiver = receiver_id
-        print("here4")
         if not sender_id or not receiver_id:
             await ctx.send("⚠️ Invalid sender or receiver.")
             return
