@@ -361,9 +361,10 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ The amount and interest must be positive.")
             return
         
-        channel = self.bot.get_channel(1343374601631043727)  # Replace with your channel ID
+        channel_id = self.bot.get_channel(1343374601631043727)  # Replace with your channel ID
     
         if scomp and rcomp:
+            print(1)
             # Check if the sender company has enough balance
             self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (sender,))
             sender_balance = self.c.fetchone()[0]
@@ -378,20 +379,20 @@ class Economy(commands.Cog):
             await ctx.send(f"{user.mention}, do you want to proceed with the loan? (yes/no)")
 
             def check(m):
-                return m.author == user and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
+                return m.author == user and m.channel == channel_id.channel and m.content.lower() in ["yes", "no"]
             
             try:
                 msg = await self.bot.wait_for('message', check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan process has been cancelled.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             
             if msg.content.lower() == "no":
                 embed = discord.Embed(title="❌ Loan Declined", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan has been declined.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             # Insert the loan into the loans table
             self.c.execute("INSERT INTO loans (issuer, recipient, amount, interest, date_issued) VALUES (?, ?, ?, ?)", (sender, receiver, amount, interest, today))
@@ -405,9 +406,10 @@ class Economy(commands.Cog):
             embed.add_field(name="Interest", value=f"{interest}%", inline=True)
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
-            await channel.send(embed=embed)
+            await channel_id.send(embed=embed)
             
         if scomp and ruser:
+            print(2)
             # Check if the sender company has enough balance
             self.c.execute("SELECT balance FROM companies WHERE company_id = ?", (sender,))
             sender_balance = self.c.fetchone()[0]
@@ -424,13 +426,13 @@ class Economy(commands.Cog):
             except asyncio.TimeoutError:
                 embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan process has been cancelled.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
         
             if msg.content.lower() == "no":
                 embed = discord.Embed(title="❌ Loan Declined", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan has been declined.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             
             # Insert the loan into the loans table
@@ -445,9 +447,10 @@ class Economy(commands.Cog):
             embed.add_field(name="Interest", value=f"{interest}%", inline=True)
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
-            await channel.send(embed=embed)
+            await channel_id.send(embed=embed)
             
         if suser and rcomp:
+            print(3)
             # Check if the sender user has enough balance
             self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender,))
             sender_balance = self.c.fetchone()[0]
@@ -468,13 +471,13 @@ class Economy(commands.Cog):
             except asyncio.TimeoutError:
                 embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan process has been cancelled.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             
             if msg.content.lower() == "no":
                 embed = discord.Embed(title="❌ Loan Declined", color=discord.Color.red())
                 embed.add_field(name="Loan Status", value="The loan has been declined.", inline=False)
-                await channel.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             # Insert the loan into the loans table
             self.c.execute("INSERT INTO loans (issuer, recipient, amount, interest, date_issued) VALUES (?, ?, ?, ?)", (sender, receiver, amount, interest, today))
@@ -488,9 +491,10 @@ class Economy(commands.Cog):
             embed.add_field(name="Interest", value=f"{interest}%", inline=True)
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
-            await channel.send(embed=embed)
+            await channel_id.send(embed=embed)
             
         if suser and ruser:
+            print(4)
             # Check if the sender user has enough balance
             self.c.execute("SELECT balance FROM users WHERE user_id = ?", (sender,))
             sender_balance = self.c.fetchone()[0]
@@ -499,20 +503,20 @@ class Economy(commands.Cog):
                 return
             # Ask the receiver user if they want to proceed with the loan
             def check(m):
-                return m.author == receiver and m.channel == ctx.channel and m.content.lower() in ["yes", "no"]
+                return m.author == receiver and m.channel == channel_id.channel and m.content.lower() in ["yes", "no"]
         
             try:
                 msg = await self.bot.wait_for('message', check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 embed = discord.Embed(title="⏰ Time's Up", color=discord.Color.red())
                 embed.add_field(name="Message", value="The loan process has been cancelled.", inline=False)
-                await ctx.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             
             if msg.content.lower() == "no":
                 embed = discord.Embed(title="❌ Private Sale Declined", color=discord.Color.red())
                 embed.add_field(name="Message", value="The loan has been declined.", inline=False)
-                await ctx.send(embed=embed)
+                await channel_id.send(embed=embed)
                 return
             # Insert the loan into the loans table
             self.c.execute("INSERT INTO loans (issuer, recipient, amount, interest, date_issued) VALUES (?, ?, ?, ?)", (sender, receiver, amount, interest, today))
@@ -526,7 +530,7 @@ class Economy(commands.Cog):
             embed.add_field(name="Interest", value=f"{interest}%", inline=True)
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
-            await channel.send(embed=embed)
+            await channel_id.send(embed=embed)
           
     @commands.command()
     async def pay_loan(self, ctx, issuer: str, amount: float):
