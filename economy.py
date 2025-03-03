@@ -77,7 +77,9 @@ class Economy(commands.Cog):
 
         user_values = []
         for user_id in user_ids:
+            print("here")
             total_value = await self.indv_value(user_id)
+            print(total_value)
             user_values.append((user_id, total_value))
         
         user_values.sort(key=lambda x: x[1], reverse=True)
