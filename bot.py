@@ -189,6 +189,7 @@ async def clear(ctx):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def clean_ownership(ctx):
     """Removes any company in the ownership table that no longer exists."""
     c.execute("SELECT name FROM companies")
