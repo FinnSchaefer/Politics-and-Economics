@@ -72,17 +72,23 @@ class Economy(commands.Cog):
     @commands.command(aliases=['board'])
     async def leader_board(self, ctx):
         """displays a leader board based on total value of an individual's assets"""
-        self.c.execute("SELECT user_id, balance FROM users")
+        self.c.execute("SELECT user_id FROM users")
         rows = self.c.fetchall()
         if not rows:
             await ctx.send("⚠️ No users found.")
             return
-        rows.sort(key=lambda x: x[1], reverse=True)
-        embed = discord.Embed(title="Balance Leader Board", color=discord.Color.green())
-        for i, row in enumerate(rows[:10], start=1):
-            user = self.bot.get_user(row[0])
+        user_values = []
+        for row in rows:
+            user_id = row[0]
+            total_value = await self.indv_value(ctx, user_id)
+            user_values.append((user_id, total_value))
+        
+        user_values.sort(key=lambda x: x[1], reverse=True)
+        embed = discord.Embed(title="Wealth Leader Board", color=discord.Color.green())
+        for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
+            user = self.bot.get_user(user_id)
             if user:
-                embed.add_field(name=f"{i}. {user}", value=f"${row[1]:.2f}", inline=False)
+                embed.add_field(name=f"{i}. {user}", value=f"Net Worth ${total_value:.2f}", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=['rou'])
@@ -534,6 +540,16 @@ class Economy(commands.Cog):
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
             await channel_id.send(embed=embed)
+          
+    async def indv_value(self,ctx, user_id: int):
+        """Calculates an individuals value based of stock holdings and balance"""
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        user_balance = self.c.fetchone()[0]
+        self.c.execute("SELECT SUM(shares*price) FROM ownership WHERE user_id = ?", (user_id,))
+        stock_value = self.c.fetchone()[0]
+        total_value = user_balance + stock_value
+        return total_value     
+         
           
     @commands.command()
     async def pay_loan(self, ctx, issuer: str, amount: float):
