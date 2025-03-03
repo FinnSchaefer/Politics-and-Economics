@@ -189,11 +189,11 @@ async def clear(ctx):
 
 
 @bot.command()
-async def clean_ownership(self, ctx):
+async def clean_ownership( ctx):
    """Removes any company in the ownership table that is not in the companies table."""
-   self.c.execute("SELECT company_id FROM ownership")
+   c.execute("SELECT company_id FROM ownership")
    ownership = c.fetchall()
-   self.c.execute("SELECT company_id FROM companies")
+   c.execute("SELECT company_id FROM companies")
    companies = c.fetchall()
    for company in ownership:
        if company not in companies:
