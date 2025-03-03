@@ -197,9 +197,9 @@ async def clean_ownership(ctx):
     ownership = c.fetchall()
     print("here")
     for company in ownership:
-        if company not in companies:
-            c.execute("DELETE FROM ownership WHERE company_id = ?", (company[0],))
-    conn.commit()
+        if (company[0],) not in companies:
+            c.execute("DELETE FROM ownership WHERE company_name = ?", (company[0],))
+            conn.commit()
     await ctx.send("Ownership table cleaned.")
     
 
