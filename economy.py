@@ -82,6 +82,7 @@ class Economy(commands.Cog):
             user_id = row[0]
             print('here')
             total_value = await self.indv_value(ctx, user_id)
+            print(total_value)
             if total_value is None:
                 total_value = 0
             user_values.append((user_id, total_value))
