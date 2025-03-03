@@ -689,7 +689,13 @@ class Companies(commands.Cog):
             try:
                 self.c.execute("SELECT resource, stockpile FROM company_resources WHERE comp_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
                 resources = self.c.fetchall()
-                
+                self.c.execute("SELECT resouce, amount, FROM national_market WHERE comp_id = (SELECT company_id FROM companies WHERE name = ?)", (company_name,))
+                market_resources = self.c.fetchall()
+                for resource, stockpile in market_resources:
+                    self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
+                    resource_value = self.c.fetchone()
+                    if resource_value:
+                        total_stock_value += stockpile * resource_value[0]
                 for resource, stockpile in resources:
                     self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
                     resource_value = self.c.fetchone()
