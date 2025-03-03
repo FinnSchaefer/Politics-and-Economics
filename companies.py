@@ -1041,7 +1041,6 @@ class Companies(commands.Cog):
             total_value = await self.indv_value(user_id)
             user_values.append((user_id, total_value))
         
-        print("here")
         user_values.sort(key=lambda x: x[1], reverse=True)
         embed = discord.Embed(title="🏆 Wealth Leader Board", color=discord.Color.gold())
         for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
@@ -1064,10 +1063,8 @@ class Companies(commands.Cog):
             value = await self.calc_stock_value(company_name)
             self.c.execute("SELECT total_shares FROM companies WHERE name = ?", (company_name,))
             total_shares = self.c.fetchone()[0]
-            print(total_shares)
             price_per_share = value / total_shares if total_shares > 0 else 0
             total_stock_value += (price_per_share * shares)
-            print(total_stock_value)
         return user_balance + total_stock_value  
 
     @commands.command(aliases=["sellshares","ss"])
