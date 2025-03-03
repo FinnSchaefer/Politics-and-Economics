@@ -195,6 +195,7 @@ async def clean_ownership(ctx):
     companies = c.fetchall()
     c.execute("SELECT company_name FROM ownership")
     ownership = c.fetchall()
+    print("here")
     for company in ownership:
         if company not in companies:
             c.execute("DELETE FROM ownership WHERE company_id = ?", (company[0],))
