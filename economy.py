@@ -74,7 +74,7 @@ class Economy(commands.Cog):
         """displays a leader board based on total value of an individual's assets"""
         self.c.execute("SELECT user_id FROM users")
         user_ids = [row[0] for row in self.c.fetchall()]
-
+        print(user_ids)
         user_values = []
         for user_id in user_ids:
             print("here")
