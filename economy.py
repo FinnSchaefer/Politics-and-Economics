@@ -80,6 +80,7 @@ class Economy(commands.Cog):
         user_values = []
         for row in rows:
             user_id = row[0]
+            print('here')
             total_value = await self.indv_value(ctx, user_id)
             if total_value is None:
                 total_value = 0
