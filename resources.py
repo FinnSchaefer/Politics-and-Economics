@@ -351,8 +351,7 @@ class Resources(commands.Cog):
             value=f"🔹 **Resource:** {resource}\n📦 **Amount:** {amount} units\n💰 **Price per Unit:** ${price_per_unit:.2f}",
             inline=False
             )
-        await ctx.send(embed=embed)
-            
+        await ctx.send(embed=embed)          
         
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
@@ -363,6 +362,7 @@ class Resources(commands.Cog):
         else:
             self.harvest_resource.reset_cooldown(ctx)
             await ctx.send(f"⚠️ An error occurred: {error}")
+            
 
 async def setup(bot):
     await bot.add_cog(Resources(bot))

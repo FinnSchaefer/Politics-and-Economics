@@ -93,7 +93,7 @@ async def update_prices():
         c.execute("UPDATE resources SET price_per_unit = ? WHERE district = ?", (new_price, district))
     conn.commit()
     price_change.sort(key=lambda x: x[1], reverse=True)
-    channel = bot.get_channel(1344821784733552691)
+    channel = bot.get_channel(1345074664850067527)
     embed = discord.Embed(
         title="📈 **Market News** 📉",
         description="Here are the top 5 biggest price movers for resources:",
@@ -118,7 +118,7 @@ async def random_international_buyers():
         return  # No items in the market
 
     for nation in nations:
-        if random.random() < 0.10:  # 10% chance
+        if random.random() < 0.125:  # 12.5% chance
             item = random.choice(market_items)
             comp_id, resource, amount, price_per_unit = item
             purchase_amount = random.randint(1, amount)
@@ -146,6 +146,41 @@ async def random_international_buyers():
             )
             await channel.send(embed=embed)
 
+
+async def international_add_resouce():
+    """A foregin company can randomly add resources to the national market with a 40% chance to undercut current prices and 60% to post at an average costs."""
+    c.execute("SELECT nation FROM foreign_nations")
+    nations = c.fetchall()
+    c.execute("SELECT comp_id, resource, amount, price_per_unit FROM national_market")
+    market_items = c.fetchall()
+
+    if not market_items:
+        return  # No items in the market
+
+    for nation in nations:
+        if random.random() < 0.40:  # 40% chance
+            item = random.choice(market_items)
+            comp_id, resource, amount, price_per_unit = item
+            list_amount = random.randint(1, 25)
+            c.execute("SELECT AVG(price_per_unit) FROM national_market WHERE resource = ?", (resource,))
+            average_price = c.fetchone()[0]
+            if random.random() < 0.40:  # 40% chance to undercut
+                new_price = average_price * (2 / 3)  # Undercut by 1/3rd
+            else:
+                new_price = average_price  # Post at average cost
+
+            c.execute("INSERT INTO national_market (comp_id, resource, amount, price_per_unit) VALUES (?, ?, ?, ?)",
+                      (comp_id, resource, list_amount, new_price))
+            conn.commit()
+
+            channel = bot.get_channel(1345074664850067527)
+            embed = discord.Embed(
+                title="🌍 **International Market** 🌍",
+                description=f"{nation[0]} has listed {list_amount} units of {resource} at ${new_price:.2f} per unit.",
+                color=discord.Color.blue()
+            )
+            await channel.send(embed=embed)
+            
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def clear(ctx):
@@ -330,7 +365,9 @@ async def on_ready():
         scheduler.add_job(update_prices, "cron", hour=5, minute=0)
         scheduler.add_job(update_prices, "cron", hour=17, minute=0)
         scheduler.add_job(random_international_buyers, "cron", hour=5, minute=0)
+        scheduler.add_job(random_international_buyers, "cron", hour=11, minute=0)
         scheduler.add_job(random_international_buyers, "cron", hour=17, minute=0)
+        scheduler.add_job(random_international_buyers, "cron", hour=23, minute=0)
         scheduler.start()
 
 # Test Ping Command
