@@ -1066,6 +1066,7 @@ class Companies(commands.Cog):
             print(total_shares)
             price_per_share = value / total_shares if total_shares > 0 else 0
             total_stock_value += (price_per_share * shares)
+            print(total_stock_value)
         return user_balance + total_stock_value  
 
     @commands.command(aliases=["sellshares","ss"])
