@@ -552,6 +552,7 @@ class Economy(commands.Cog):
         if not stock_value:
             stock_value = 0
         total_value = user_balance + stock_value
+        print(total_value)
         return total_value     
          
           
