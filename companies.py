@@ -1042,11 +1042,14 @@ class Companies(commands.Cog):
             user_values.append((user_id, total_value))
         
         user_values.sort(key=lambda x: x[1], reverse=True)
-        embed = discord.Embed(title="Wealth Leader Board", color=discord.Color.green())
+        embed = discord.Embed(title="🏆 Wealth Leader Board", color=discord.Color.gold())
+        embed.set_thumbnail(url="https://example.com/leaderboard_icon.png")  # Add a thumbnail image
         for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
             user = self.bot.get_user(user_id)
             if user:
-                embed.add_field(name=f"{i}. {user}", value=f"Net Worth ${total_value:.2f}", inline=False)
+                rank_emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "🏅"
+                embed.add_field(name=f"{rank_emoji} {i}. {user}", value=f"💰 Net Worth: ${total_value:,.2f}", inline=False)
+        embed.set_footer(text="Keep up the good work and climb the ranks!")
         await ctx.send(embed=embed)
 
     async def indv_value(self, user_id: int):
