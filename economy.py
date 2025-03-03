@@ -73,16 +73,11 @@ class Economy(commands.Cog):
     async def leader_board(self, ctx):
         """displays a leader board based on total value of an individual's assets"""
         self.c.execute("SELECT user_id FROM users")
-        rows = self.c.fetchall()
-        if not rows:
-            await ctx.send("⚠️ No users found.")
-            return
+        user_ids = [row[0] for row in self.c.fetchall()]
+
         user_values = []
-        for row in rows:
-            user_id = row[0]
-            print('here')
+        for user_id in user_ids:
             total_value = await self.indv_value(user_id)
-            print(total_value)
             user_values.append((user_id, total_value))
         
         user_values.sort(key=lambda x: x[1], reverse=True)
