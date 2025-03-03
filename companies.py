@@ -1061,7 +1061,7 @@ class Companies(commands.Cog):
         total_stock_value = 0
         for company_name, shares in ownerships:
             value = await self.calc_stock_value(company_name)
-            total_stock_value += value * shares
+            total_stock_value += (value / shares)
         return user_balance + total_stock_value  
 
     @commands.command(aliases=["sellshares","ss"])
