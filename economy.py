@@ -81,6 +81,8 @@ class Economy(commands.Cog):
         for row in rows:
             user_id = row[0]
             total_value = await self.indv_value(ctx, user_id)
+            if total_value is None:
+                total_value = 0
             user_values.append((user_id, total_value))
         
         user_values.sort(key=lambda x: x[1], reverse=True)
@@ -541,7 +543,7 @@ class Economy(commands.Cog):
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
             await channel_id.send(embed=embed)
           
-    async def indv_value(self,ctx, user_id: int):
+    async def indv_value(self, ctx, user_id: int):
         """Calculates an individuals value based of stock holdings and balance"""
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance = self.c.fetchone()[0]
