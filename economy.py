@@ -69,27 +69,6 @@ class Economy(commands.Cog):
         else:
             await ctx.send(f"{user}! You need to join a district before checking your balance.")
 
-    @commands.command(aliases=['board'])
-    async def leader_board(self, ctx):
-        """displays a leader board based on total value of an individual's assets"""
-        self.c.execute("SELECT user_id FROM users")
-        user_ids = [row[0] for row in self.c.fetchall()]
-        user_values = []
-        for user_id in user_ids:
-            user_id = int(user_id)
-            print(user_id)
-            total_value = await self.indv_value(user_id)
-            print(total_value)
-            user_values.append((user_id, total_value))
-        
-        user_values.sort(key=lambda x: x[1], reverse=True)
-        embed = discord.Embed(title="Wealth Leader Board", color=discord.Color.green())
-        for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
-            user = self.bot.get_user(user_id)
-            if user:
-                embed.add_field(name=f"{i}. {user}", value=f"Net Worth ${total_value:.2f}", inline=False)
-        await ctx.send(embed=embed)
-
     @commands.command(aliases=['rou'])
     async def roulette(self, ctx, amount: float, color_number: str):
         """Play a game of roulette with your balance."""
@@ -538,23 +517,8 @@ class Economy(commands.Cog):
             embed.add_field(name="Interest", value=f"{interest}%", inline=True)
             embed.add_field(name="Sender", value=f"{sender}", inline=True)
             embed.add_field(name="Receiver", value=f"{receiver}", inline=True)
-            await channel_id.send(embed=embed)
-          
-    async def indv_value(self, user_id):
-        """Calculates an individuals value based of stock holdings and balance"""
-        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
-        user_balance_row = self.c.fetchone()
-        user_balance = user_balance_row[0] if user_balance_row else 0
-        print(user_balance)
-        self.c.execute("SELECT SUM(shares*price) FROM ownership WHERE user_id = ?", (user_id,))
-        stock_value_row = self.c.fetchone()
-        print(stock_value_row)
-        stock_value = stock_value_row[0] if stock_value_row else 0
-        total_value = user_balance + stock_value
-        print(total_value)
-        return total_value     
+            await channel_id.send(embed=embed) 
          
-          
     @commands.command()
     async def pay_loan(self, ctx, issuer: str, amount: float):
         receiver = ctx.author.id

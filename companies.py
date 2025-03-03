@@ -1031,7 +1031,38 @@ class Companies(commands.Cog):
         channel = self.bot.get_channel(1345074664850067527)
         await channel.send(embed=embed)
 
+    @commands.command(aliases=['board'])
+    async def leader_board(self, ctx):
+        """displays a leader board based on total value of an individual's assets"""
+        self.c.execute("SELECT user_id FROM users")
+        user_ids = [row[0] for row in self.c.fetchall()]
+        user_values = []
+        for user_id in user_ids:
+            total_value = await self.indv_value(user_id)
+            print(total_value)
+            user_values.append((user_id, total_value))
+        
+        user_values.sort(key=lambda x: x[1], reverse=True)
+        embed = discord.Embed(title="Wealth Leader Board", color=discord.Color.green())
+        for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
+            user = self.bot.get_user(user_id)
+            if user:
+                embed.add_field(name=f"{i}. {user}", value=f"Net Worth ${total_value:.2f}", inline=False)
+        await ctx.send(embed=embed)
 
+    async def indv_value(self, user_id: int):
+        """Calculates an individuals value based of stock holdings and balance"""
+        self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
+        user_balance_row = self.c.fetchone()
+        user_balance = user_balance_row[0] if user_balance_row else 0
+        print(user_balance)
+        self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = ?", (user_id,))
+        ownerships = self.c.fetchall()
+        total_stock_value = 0
+        for company_name, shares in ownerships:
+            value = await self.calc_stock_value(company_name)
+            total_stock_value += value * shares
+        return user_balance + total_stock_value  
 
     @commands.command(aliases=["sellshares","ss"])
     async def sell_shares(self, ctx, company_name: str, amount: int):
