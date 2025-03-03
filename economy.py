@@ -546,11 +546,11 @@ class Economy(commands.Cog):
     async def indv_value(self, user_id: int):
         """Calculates an individuals value based of stock holdings and balance"""
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
-        user_balance = self.c.fetchone()[0]
+        user_balance_row = self.c.fetchone()
+        user_balance = user_balance_row[0] if user_balance_row else 0
         self.c.execute("SELECT SUM(shares*price) FROM ownership WHERE user_id = ?", (user_id,))
-        stock_value = self.c.fetchone()[0]
-        if not stock_value:
-            stock_value = 0
+        stock_value_row = self.c.fetchone()
+        stock_value = stock_value_row[0] if stock_value_row else 0
         total_value = user_balance + stock_value
         print(total_value)
         return total_value     
