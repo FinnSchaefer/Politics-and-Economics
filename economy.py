@@ -76,7 +76,7 @@ class Economy(commands.Cog):
         user_ids = [row[0] for row in self.c.fetchall()]
         user_values = []
         for user_id in user_ids:
-            print(user_id)
+            user_id = int(user_id)
             total_value = await self.indv_value(user_id)
             print(total_value)
             user_values.append((user_id, total_value))
