@@ -545,8 +545,10 @@ class Economy(commands.Cog):
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance_row = self.c.fetchone()
         user_balance = user_balance_row[0] if user_balance_row else 0
+        print(user_balance)
         self.c.execute("SELECT SUM(shares*price) FROM ownership WHERE user_id = ?", (user_id,))
         stock_value_row = self.c.fetchone()
+        print(stock_value_row)
         stock_value = stock_value_row[0] if stock_value_row else 0
         total_value = user_balance + stock_value
         print(total_value)
