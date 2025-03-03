@@ -191,15 +191,15 @@ async def clear(ctx):
 @bot.command()
 async def clean_ownership(self, ctx):
    """Removes any company in the ownership table that is not in the companies table."""
-    self.c.execute("SELECT company_id FROM ownership")
-    ownership = c.fetchall()
-    self.c.execute("SELECT company_id FROM companies")
-    companies = c.fetchall()
-    for company in ownership:
-         if company not in companies:
-              c.execute("DELETE FROM ownership WHERE company_id = ?", (company,))
-              conn.commit()
-    await ctx.send("Ownership table cleaned.")
+   self.c.execute("SELECT company_id FROM ownership")
+   ownership = c.fetchall()
+   self.c.execute("SELECT company_id FROM companies")
+   companies = c.fetchall()
+   for company in ownership:
+       if company not in companies:
+            c.execute("DELETE FROM ownership WHERE company_id = ?", (company,))
+            conn.commit()
+            await ctx.send("Ownership table cleaned.")
 
 @bot.command()
 @commands.has_permissions(administrator=True)
