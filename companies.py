@@ -1039,7 +1039,6 @@ class Companies(commands.Cog):
         user_values = []
         for user_id in user_ids:
             total_value = await self.indv_value(user_id)
-            print(total_value)
             user_values.append((user_id, total_value))
         
         user_values.sort(key=lambda x: x[1], reverse=True)
@@ -1055,7 +1054,6 @@ class Companies(commands.Cog):
         self.c.execute("SELECT balance FROM users WHERE user_id = ?", (user_id,))
         user_balance_row = self.c.fetchone()
         user_balance = user_balance_row[0] if user_balance_row else 0
-        print(user_balance)
         self.c.execute("SELECT company_name, shares FROM ownership WHERE owner_id = ?", (user_id,))
         ownerships = self.c.fetchall()
         total_stock_value = 0
