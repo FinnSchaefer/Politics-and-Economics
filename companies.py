@@ -1041,6 +1041,7 @@ class Companies(commands.Cog):
             total_value = await self.indv_value(user_id)
             user_values.append((user_id, total_value))
         
+        print("here")
         user_values.sort(key=lambda x: x[1], reverse=True)
         embed = discord.Embed(title="🏆 Wealth Leader Board", color=discord.Color.gold())
         for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
