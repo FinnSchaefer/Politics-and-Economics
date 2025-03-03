@@ -1043,7 +1043,6 @@ class Companies(commands.Cog):
         
         user_values.sort(key=lambda x: x[1], reverse=True)
         embed = discord.Embed(title="🏆 Wealth Leader Board", color=discord.Color.gold())
-        embed.set_thumbnail(url="https://example.com/leaderboard_icon.png")  # Add a thumbnail image
         for i, (user_id, total_value) in enumerate(user_values[:10], start=1):
             user = self.bot.get_user(user_id)
             if user:
@@ -1062,7 +1061,10 @@ class Companies(commands.Cog):
         total_stock_value = 0
         for company_name, shares in ownerships:
             value = await self.calc_stock_value(company_name)
-            total_stock_value += (value / shares)
+            self.c.execute("SELECT total_shares FROM companies WHERE name = ?", (company_name,))
+            total_shares = self.c.fetchone()[0]
+            price_per_share = value / total_shares if total_shares > 0 else 0
+            total_stock_value += (price_per_share * shares)
         return user_balance + total_stock_value  
 
     @commands.command(aliases=["sellshares","ss"])
