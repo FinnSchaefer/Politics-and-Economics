@@ -701,7 +701,7 @@ class Companies(commands.Cog):
                     self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
                     resource_value = self.c.fetchone()
                     if resource_value:
-                        total_stock_value += amount * resource_value
+                        total_stock_value += amount * resource_value[0]
             except sqlite3.OperationalError:
                 pass  # Table does not exist, skip this part
             
