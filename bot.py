@@ -109,7 +109,7 @@ async def update_prices():
     
     
 @bot.command()
-async def test():
+async def test(ctx):
     await random_international_buyers()   
     
 async def random_international_buyers():
