@@ -110,7 +110,7 @@ async def update_prices():
     
 @bot.command()
 async def test(ctx):
-    await random_international_buyers()   
+    await random_international_buyers()    
     
 async def random_international_buyers():
     """Randomly selects a foreign nation to buy a resource from the national market."""
@@ -125,6 +125,20 @@ async def random_international_buyers():
             comp_id, resource, amount, price_per_unit = item
             purchase_amount = random.randint(1, amount)
             total_cost = purchase_amount * price_per_unit
+            
+            #takes the price of the good not listed on market and compares it to the market price if the market price is higher the nation will not buy the good
+            c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
+            base_price = c.fetchone()[0]
+            if price_per_unit > (4*base_price):
+                channel = bot.get_channel(1345074664850067527)
+                embed = discord.Embed(
+                    title="🌍 **International Trade** 🌍",
+                    description=f"{nation[0]} is horrified by the price of {resource} from {company[0]} as the price of ${price_per_unit:.2f} is too high compared to the market price of ${base_price:.2f}.",
+                    color=discord.Color.red()
+                )
+                await channel.send(embed=embed)
+                continue
+            
 
             # Update the market
             c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (purchase_amount, comp_id, resource))
