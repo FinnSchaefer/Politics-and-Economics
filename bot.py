@@ -128,6 +128,7 @@ async def random_international_buyers():
             
             #takes the price of the good not listed on market and compares it to the market price if the market price is higher the nation will not buy the good
             c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
+            print('here')
             base_price = c.fetchone()[0]
             if price_per_unit > (4*base_price):
                 channel = bot.get_channel(1345074664850067527)
