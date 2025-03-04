@@ -108,7 +108,7 @@ async def update_prices():
     await channel.send(embed=embed)
     
     
-@commands.command()
+@bot.command()
 async def test():
     await random_international_buyers()   
     
