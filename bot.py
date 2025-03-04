@@ -107,18 +107,20 @@ async def update_prices():
             embed.add_field(name=f"📉 **{district}**", value=f"Decreased by ${-change:.2f}", inline=False)
     await channel.send(embed=embed)
     
+    
+@commands.command()
+async def test():
+    await random_international_buyers()   
+    
 async def random_international_buyers():
     """Randomly selects a foreign nation to buy a resource from the national market."""
     c.execute("SELECT nation FROM foreign_nations")
     nations = c.fetchall()
-    c.execute("SELECT comp_id, resource, amount, price_per_unit FROM national_market")
-    market_items = c.fetchall()
-
-    if not market_items:
-        return  # No items in the market
 
     for nation in nations:
         if random.random() < 0.125:  # 12.5% chance
+            c.execute("SELECT comp_id, resource, amount, price_per_unit FROM national_market")
+            market_items = c.fetchall()
             item = random.choice(market_items)
             comp_id, resource, amount, price_per_unit = item
             purchase_amount = random.randint(1, amount)

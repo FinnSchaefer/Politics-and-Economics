@@ -353,6 +353,43 @@ class Resources(commands.Cog):
             )
         await ctx.send(embed=embed)          
         
+    @commands.command(aliases=["dm"])
+    async def delist_resource(self, ctx, company: str, resource: str, amount: int):
+        """removes a resource from the market and adds it back to the company's stockpile"""
+        self.c.execute("SELECT name FROM companies WHERE ticker = ?", (company,))
+        ticker_result = self.c.fetchone()
+        
+        if ticker_result:
+            company = ticker_result[0]
+        
+        self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
+        company_row = self.c.fetchone()
+        if not company_row:
+            await ctx.send("⚠️ Company not found.")
+            return
+        company_id = company_row[0]
+        
+        # Check if the company has enough of the resource to list
+        self.c.execute("SELECT amount FROM national_market WHERE comp_id = ? AND resource = ?", (company_id, resource))
+        company_stockpile = self.c.fetchone()
+        if not company_stockpile or company_stockpile[0] < amount:
+            await ctx.send("⚠️ Not enough resources to delist.")
+            return
+
+        # Update the company's resource stockpile
+        self.c.execute("UPDATE company_resources SET stockpile = stockpile + ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
+        # Insert or update the national market with the listed resource
+        self.c.execute("UPDATE national_market SET amount = amount - ? WHERE comp_id = ? AND resource = ?", (amount, company_id, resource))
+        self.c.execute("DELETE FROM national_market WHERE amount = 0")
+        
+        self.conn.commit()
+
+        embed = discord.Embed(title="✅ Resource Delisted from Market", color=discord.Color.green())
+        embed.add_field(name="Company", value=company, inline=True)
+        embed.add_field(name="Resource", value=resource, inline=True)
+        embed.add_field(name="Amount", value=f"{amount} units", inline=True)
+        await ctx.send(embed=embed)    
+    
     @harvest_resource.error
     async def harvest_resource_error(self, ctx, error):
         
