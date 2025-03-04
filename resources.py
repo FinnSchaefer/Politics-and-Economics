@@ -126,39 +126,39 @@ class Resources(commands.Cog):
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company_name,))
         company_row = self.c.fetchone()
         if not company_row:
-            await ctx.send("⚠️ Company not found.")
-            return
+            raise commands.CommandError("⚠️ Company doesnt exist.")
+            
         company_id = company_row[0]
         
         # Get the district assigned to the company
         self.c.execute("SELECT owner_id FROM companies WHERE company_id = ?", (company_id,))
         owner_row = self.c.fetchone()
         if not owner_row:
-            await ctx.send("⚠️ Owner not found for the company.")
-            return
+            raise commands.CommandError("⚠️ Owner doesnt own the company.")
+            
         owner_id = owner_row[0]
 
         self.c.execute("SELECT district FROM users WHERE user_id = ?", (owner_id,))
         district_row = self.c.fetchone()
         if not district_row:
-            await ctx.send("⚠️ District not found for the company.")
-            return
+            raise commands.CommandError("⚠️ No district assigned to user.")
+            
         district = district_row[0]
 
         # Get the resource assigned to the district
         self.c.execute("SELECT resource FROM resources WHERE district = ?", (district,))
         resource_row = self.c.fetchone()
         if not resource_row:
-            await ctx.send("⚠️ Resource not found in the district.")
-            return
+            raise commands.CommandError("⚠️ Resource not found in district.")
+        
         resource = resource_row[0]
 
         # Get the current stockpile and price of the resource in the district
         self.c.execute("SELECT stockpile, price_per_unit FROM resources WHERE district = ?", (district,))
         resource_row = self.c.fetchone()
         if not resource_row:
-            await ctx.send("⚠️ Resource not found in the district.")
-            return
+            raise commands.CommandError("⚠️ Resource not found in district.")
+        
         stockpile, price_per_unit = resource_row
 
         if stockpile < amount:
@@ -166,7 +166,7 @@ class Resources(commands.Cog):
             embed.add_field(name="Available Stockpile", value=f"{stockpile} units", inline=True)
             embed.add_field(name="Requested Amount", value=f"{amount} units", inline=True)
             await ctx.send(embed=embed)
-            return
+            raise commands.CommandError()
 
         cost = price_per_unit * amount * (1 + 0.1 * (amount - 1) / 2)
         # Deduct the cost from the company's balance
@@ -175,7 +175,7 @@ class Resources(commands.Cog):
             embed.add_field(name="Available Balance", value=f"${self.c.execute('SELECT balance FROM companies WHERE company_id = ?', (company_id,)).fetchone()[0]:.2f}", inline=True)
             embed.add_field(name="Required Amount", value=f"${cost:.2f}", inline=True)
             await ctx.send(embed=embed)
-            return
+            raise commands.CommandError()
         
         self.c.execute("UPDATE companies SET balance = balance - ? WHERE company_id = ?", (cost, company_id))
         self.c.execute("UPDATE tax_rate SET government_balance = government_balance + ?", (cost,))
@@ -265,7 +265,7 @@ class Resources(commands.Cog):
         self.c.execute("SELECT company_id FROM companies WHERE name = ?", (company,))
         company_row = self.c.fetchone()
         if not company_row:
-            await ctx.send("⚠️ Company not found.")
+            raise commands.CommandError("⚠️ District not found for the resource.")
             return
         company_id = company_row[0]
         
