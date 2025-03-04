@@ -106,11 +106,7 @@ async def update_prices():
         else:
             embed.add_field(name=f"📉 **{district}**", value=f"Decreased by ${-change:.2f}", inline=False)
     await channel.send(embed=embed)
-    
-    
-@bot.command()
-async def test(ctx):
-    await random_international_buyers()    
+       
     
 async def random_international_buyers():
     """Randomly selects a foreign nation to buy a resource from the national market."""
