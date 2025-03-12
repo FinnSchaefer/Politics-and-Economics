@@ -310,7 +310,7 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ The percentage must be positive.")
             return
 
-        self.c.execute(f"SELECT price FROM resources WHERE name = ?", (resource,))
+        self.c.execute("SELECT price FROM resources WHERE name = ?", (resource,))
         row = self.c.fetchone()
         if not row:
             await ctx.send("⚠️ Invalid resource.")
