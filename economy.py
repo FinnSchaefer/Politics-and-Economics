@@ -320,7 +320,14 @@ class Economy(commands.Cog):
         self.c.execute("UPDATE resources SET price = ? WHERE name = ?", (new_price, resource))
         self.conn.commit()
 
-        await ctx.send(f"📉 The price of {resource} has crashed by {percent}%.")
+        channel = self.bot.get_channel(1345074664850067527)  # Replace with your channel ID
+        previous_price = row[0]
+        embed = discord.Embed(title="Resource Price Crash!", color=discord.Color.red())
+        embed.add_field(name="Resource", value=resource, inline=True)
+        embed.add_field(name="Previous Price", value=f"${previous_price:.2f}", inline=True)
+        embed.add_field(name="New Price", value=f"${new_price:.2f}", inline=True)
+        embed.add_field(name="Percentage Decrease", value=f"{percent}%", inline=True)
+        await channel.send(embed=embed)
 
     @commands.command()
     async def loan(self, ctx, sender: discord.Member | str, receiver: discord.Member | str, amount: float, interest: float):
