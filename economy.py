@@ -316,13 +316,11 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ Invalid resource.")
             return
 
-        print("here")
         new_price = row[0] * (1 - percent / 100)
         self.c.execute("UPDATE resources SET price_per_unit = ? WHERE resource = ?", (new_price, resource))
         self.conn.commit()
-        print("here2")
 
-        channel = await self.bot.get_channel(1345074664850067527)  # Replace with your channel ID
+        channel = self.bot.get_channel(1345074664850067527)  # Replace with your channel ID
         previous_price = row[0]
         embed = discord.Embed(title="Resource Price Crash!", color=discord.Color.red())
         embed.add_field(name="Resource", value=resource, inline=True)
