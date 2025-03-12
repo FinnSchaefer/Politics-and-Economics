@@ -310,7 +310,7 @@ class Economy(commands.Cog):
             await ctx.send("⚠️ The percentage must be positive.")
             return
 
-        self.c.execute("SELECT price FROM resources WHERE name = ?", (resource,))
+        self.c.execute("SELECT price_per_unit FROM resources WHERE resource = ?", (resource,))
         row = self.c.fetchone()
         if not row:
             await ctx.send("⚠️ Invalid resource.")
@@ -318,7 +318,7 @@ class Economy(commands.Cog):
 
         print("here")
         new_price = row[0] * (1 - percent / 100)
-        self.c.execute("UPDATE resources SET price = ? WHERE name = ?", (new_price, resource))
+        self.c.execute("UPDATE resources SET price_per_unit = ? WHERE resource = ?", (new_price, resource))
         self.conn.commit()
         print("here2")
 
