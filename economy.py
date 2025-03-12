@@ -303,6 +303,26 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.has_role("RP Admin")
+    async def crash(self, ctx, resource: str, percent: float):
+        """Crash a resource's price by a certain percentage."""
+        if percent <= 0:
+            await ctx.send("⚠️ The percentage must be positive.")
+            return
+
+        self.c.execute(f"SELECT price FROM resources WHERE name = ?", (resource,))
+        row = self.c.fetchone()
+        if not row:
+            await ctx.send("⚠️ Invalid resource.")
+            return
+
+        new_price = row[0] * (1 - percent / 100)
+        self.c.execute("UPDATE resources SET price = ? WHERE name = ?", (new_price, resource))
+        self.conn.commit()
+
+        await ctx.send(f"📉 The price of {resource} has crashed by {percent}%.")
+
+    @commands.command()
     async def loan(self, ctx, sender: discord.Member | str, receiver: discord.Member | str, amount: float, interest: float):
         scomp = False
         rcomp = False
